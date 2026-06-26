@@ -1,0 +1,128 @@
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/600.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/400.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dyson-bg: 13 17 23;
+  --dyson-panel: 22 27 34;
+  --dyson-elevated: 29 35 44;
+  --dyson-border: 48 54 61;
+  --dyson-accent: 88 166 255;
+  --dyson-flow: 76 184 148;
+  --dyson-blueprint: 226 174 88;
+  --dyson-green: 63 185 80;
+  --dyson-yellow: 210 153 34;
+  --dyson-red: 248 81 73;
+  --dyson-text: 201 209 217;
+  --dyson-muted: 139 148 158;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: rgb(var(--dyson-bg));
+  color: rgb(var(--dyson-text));
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--dyson-bg));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--dyson-border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--dyson-elevated));
+}
+
+/* xterm overrides */
+.xterm {
+  padding: 8px;
+  height: 100%;
+}
+
+.xterm-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--dyson-border)) rgb(var(--dyson-bg));
+}
+
+/* Monaco overrides */
+.monaco-editor .margin {
+  background-color: rgb(var(--dyson-bg)) !important;
+}
+
+/* ── JcodePanel streaming UI theme aliases ──────────────────────────────── */
+:root {
+  --color-bg: rgb(var(--dyson-bg));
+  --color-surface: rgb(var(--dyson-panel));
+  --color-surface-offset: rgb(var(--dyson-elevated));
+  --color-border: rgb(var(--dyson-border));
+  --color-primary: rgb(var(--dyson-accent));
+  --color-text: rgb(var(--dyson-text));
+  --color-text-muted: rgb(var(--dyson-muted));
+  --color-text-faint: #484f58;
+  --color-text-inverse: #ffffff;
+  --color-success: #3fb950;
+  --color-error: #f85149;
+  --color-gold: #d29922;
+}
+
+/* ── JCODE / DYSON DESIGN TOKENS (from dysoncode-chat-panel.html) ──────── */
+:root {
+  --jcode-bg:            #0b0c0e;
+  --jcode-surface:       #0f1012;
+  --jcode-surface-2:     #141518;
+  --jcode-surface-3:     #191b1f;
+  --jcode-surface-4:     #1e2025;
+  --jcode-border:        rgba(255,255,255,0.06);
+  --jcode-border-bright: rgba(255,255,255,0.12);
+  --jcode-cyan:          #00d4d4;
+  --jcode-cyan-dim:      #00a8a8;
+  --jcode-cyan-glow:     rgba(0,212,212,0.15);
+  --jcode-cyan-glow-soft: rgba(0,212,212,0.06);
+  --jcode-violet:        #8b5cf6;
+  --jcode-violet-dim:    #6d40e0;
+  --jcode-violet-glow:   rgba(139,92,246,0.15);
+  --jcode-green:         #22c55e;
+  --jcode-amber:         #f59e0b;
+  --jcode-red:           #ef4444;
+  --jcode-text:          #e2e4e8;
+  --jcode-text-muted:    #6b7280;
+  --jcode-text-faint:    #374151;
+  --jcode-text-code:     #a5d6ff;
+  --jcode-font-ui:       'Inter', system-ui, sans-serif;
+  --jcode-font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ── JcodePanel animations ──────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}

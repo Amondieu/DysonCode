@@ -1,0 +1,76 @@
+route:
+  name: kore-inner-circle-v2-cloud
+  version: 2
+  routing_mode: cloud_first          # v1: hybrid_local
+  memory_local_only: true            # harte Invariante
+
+  roles:
+
+    architect:
+      primary:        burst           # deepseek-v4-pro Key 1
+      secondary:      mid             # v4-pro Key 2 (PIL lane)
+      tertiary:       frontier        # gpt-5.4 @ Abacus
+      fallback_local: deep            # SET-C — nur Cloud-Ausfall / PII-Block
+      emergency_local: coder          # SET-A — letzter Fallback
+      redact_before_cloud: true       # scholar/spec via #28 brief
+      max_tokens: 4096
+      temperature: 0.1
+      artefact_out: BuildManifest
+
+    builder:
+      primary:        flash-k2        # v4-flash Key 2 — PIL primary
+      secondary:      mid
+      tertiary:       abacus-free-c   # DeepSeek-V3.2 @ Abacus Ring 1 ($0)
+      quaternary:     burst           # power lane wenn complexity >= 0.7
+      fallback_local: forge-base      # Ring 0 — Cloud-Ausfall only
+      synergy_gate:   HYBRID_CD       # -> burst statt flash-k2
+      max_tokens: 8192
+      temperature: 0.1
+      artefact_out: CodeDelta
+
+    critic:
+      primary:        flash-sn-think  # SN DeepSeek + thinking
+      secondary:      critic-frontier # o4-mini @ Abacus (cap 50/day)
+      escalation:     joker           # vesica_gap > 0.20
+      fallback_local: forge-base      # nur wenn alle Cloud-Lanes down
+      compost_alias:  burst
+      max_tokens: 2048
+      temperature: 0.1
+      artefact_out: FailureNote
+
+    tester:
+      execution:      init.sh         # Hard Gate — immer lokal
+      llm_primary:    judge           # gpt-oss-120b @ SambaNova
+      llm_fallback:   abacus-free-d   # Qwen2.5-72B schema_check @ Abacus
+      schema_offline: micro-coder     # 1.5B CPU — nur wenn Cloud+PII-Block
+      temperature:    0.0
+      artefact_out:   TestResult
+
+    memory_keeper:
+      local_only:     fast-draft      # SET-D 7B — EINZIGER bewusster Local-LLM
+      intent_bridge:  intent          # 3B CPU — Session-Lookup (kein Reasoning)
+      embed:          embed           # BGE-M3 CPU — Retrieval-Sidecar
+      cloud:          never
+      compress_hook:  headroom
+      max_tokens:     1024
+      temperature:    0.2
+      artefact_out:   MemorySnapshot
+
+  second_opinion:
+    complexity_gate:    0.5
+    # v2: komplexe Tasks IMMER Critic — einfache ueberspringen nur wenn score < 0.3
+    critic_skip_below:  0.3
+    vesica_pair:        [c, d]
+    vesica_gap_gate:    0.20
+    route_llm:          abacus-free-f
+
+  privacy_gates:
+    pii_fail_closed:    true
+    cloud_requires_redaction: true    # #28 scholar_redacted_brief PFLICHT
+    memory_never_cloud: true
+    key1_reserved:      true          # flash+burst nicht im PIL-Volume-Pool
+
+  cost_caps:
+    critic-frontier:    50/day
+    joker:              100/day
+    frontier:           20/day

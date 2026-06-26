@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dyson Frame Modulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --bg:            #0e0e10;
+  --surface:       #16161a;
+  --surface-2:     #1c1c21;
+  --surface-3:     #242429;
+  --border:        rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --text:          #d4d4d8;
+  --text-muted:    #71717a;
+  --text-faint:    #3f3f46;
+  --font-body:     'Inter', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+  --radius-sm:     6px;
+  --radius-md:     10px;
+  --radius-lg:     14px;
+  --ease:          cubic-bezier(0.16,1,0.3,1);
+  --transition:    200ms var(--ease);
+
+  /* Frame accent colors */
+  --sigma-color:   #4f98a3;
+  --sigma-glow:    rgba(79,152,163,0.28);
+  --ideva-color:   #e8af34;
+  --ideva-glow:    rgba(232,175,52,0.28);
+  --phworge-color: #da7101;
+  --phworge-glow:  rgba(218,113,1,0.28);
+  --omega-color:   #a86fdf;
+  --omega-glow:    rgba(168,111,223,0.28);
+  --dyson-color:   #6daa45;
+  --dyson-glow:    rgba(109,170,69,0.28);
+  --fusion-color:  #f472b6;
+  --fusion-glow:   rgba(244,114,182,0.35);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { -webkit-font-smoothing:antialiased; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ── DEMO SHELL ──────────────────────────────────────────── */
+.demo-shell {
+  width: 100%;
+  max-width: 760px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+
+/* ── CHAT HISTORY (simulated) ───────────────────────────── */
+.chat-history {
+  padding: 20px;
+  min-height: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-history::-webkit-scrollbar { width: 4px; }
+.chat-history::-webkit-scrollbar-track { background: transparent; }
+.chat-history::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 9999px; }
+
+.msg { display:flex; gap:10px; align-items:flex-start; }
+.msg.user { flex-direction:row-reverse; }
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:600; flex-shrink:0;
+}
+.msg.assistant .avatar { background: rgba(79,152,163,0.2); color: var(--sigma-color); }
+.msg.user .avatar { background: rgba(168,111,223,0.2); color: var(--omega-color); }
+.bubble {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 82%;
+  color: var(--text);
+}
+.msg.user .bubble { background: var(--surface-3); }
+.bubble em { color: var(--text-muted); font-style: normal; font-size: 11px; }
+
+/* ── CHAT INPUT AREA ────────────────────────────────────── */
+.chat-input-area {
+  padding: 16px;
+  background: var(--surface);
+}
+
+/* ── FRAME MODULATOR ────────────────────────────────────── */
+.frame-modulator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.frames-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.frames-row {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+/* ── FRAME BUTTON ───────────────────────────────────────── */
+.frame-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition),
+              box-shadow var(--transition), transform var(--transition);
+  user-select: none;
+  min-width: 62px;
+}
+.frame-btn:focus-visible {
+  outline: 2px solid var(--sigma-color);
+  outline-offset: 2px;
+}
+.frame-btn:hover:not([aria-pressed="true"]) {
+  background: #2a2a30;
+  border-color: var(--border-strong);
+}
+.frame-btn:active { transform: scale(0.96); }
+
+.frame-symbol {
+  font-size: 18px;
+  line-height: 1;
+  transition: filter var(--transition);
+}
+.frame-name {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  transition: color var(--transition);
+  white-space: nowrap;
+}
+
+/* Active states — each frame has its own color */
+.frame-btn[aria-pressed="true"][data-frame="sigma"] {
+  background: rgba(79,152,163,0.12);
+  border-color: var(--sigma-color);
+  box-shadow: 0 0 12px var(--sigma-glow), inset 0 0 8px rgba(79,152,163,0.08);
+}
+.frame-btn[aria-pressed="true"][data-frame="sigma"] .frame-name { color: var(--sigma-color); }
+.frame-btn[aria-pressed="true"][data-frame="sigma"] .frame-symbol { filter: drop-shadow(0 0 6px var(--sigma-color)); }
+
+.frame-btn[aria-pressed="true"][data-frame="ideva"] {
+  background: rgba(232,175,52,0.12);
+  border-color: var(--ideva-color);
+  box-shadow: 0 0 12px var(--ideva-glow), inset 0 0 8px rgba(232,175,52,0.08);
+}
+.frame-btn[aria-pressed="true"][data-frame="ideva"] .frame-name { color: var(--ideva-color); }
+.frame-btn[aria-pressed="true"][data-frame="ideva"] .frame-symbol { filter: drop-shadow(0 0 6px var(--ideva-color)); }
+
+.frame-btn[aria-pressed="true"][data-frame="phworge"] {
+  background: rgba(218,113,1,0.12);
+  border-color: var(--phworge-color);
+  box-shadow: 0 0 12px var(--phworge-glow), inset 0 0 8px rgba(218,113,1,0.08);
+}
+.frame-btn[aria-pressed="true"][data-frame="phworge"] .frame-name { color: var(--phworge-color); }
+.frame-btn[aria-pressed="true"][data-frame="phworge"] .frame-symbol { filter: drop-shadow(0 0 6px var(--phworge-color)); }
+
+.frame-btn[aria-pressed="true"][data-frame="omega"] {
+  background: rgba(168,111,223,0.12);
+  border-color: var(--omega-color);
+  box-shadow: 0 0 12px var(--omega-glow), inset 0 0 8px rgba(168,111,223,0.08);
+}
+.frame-btn[aria-pressed="true"][data-frame="omega"] .frame-name { color: var(--omega-color); }
+.frame-btn[aria-pressed="true"][data-frame="omega"] .frame-symbol { filter: drop-shadow(0 0 6px var(--omega-color)); }
+
+.frame-btn[aria-pressed="true"][data-frame="dyson"] {
+  background: rgba(109,170,69,0.12);
+  border-color: var(--dyson-color);
+  box-shadow: 0 0 12px var(--dyson-glow), inset 0 0 8px rgba(109,170,69,0.08);
+}
+.frame-btn[aria-pressed="true"][data-frame="dyson"] .frame-name { color: var(--dyson-color); }
+.frame-btn[aria-pressed="true"][data-frame="dyson"] .frame-symbol { filter: drop-shadow(0 0 6px var(--dyson-color)); }
+
+/* Checkmark badge on active */
+.frame-btn[aria-pressed="true"]::after {
+  content: '✓';
+  position: absolute;
+  top: -5px; right: -5px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--frame-color, var(--sigma-color));
+  color: #000;
+  font-size: 8px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 14px;
+  text-align: center;
+}
+.frame-btn[data-frame="sigma"][aria-pressed="true"]::after { background: var(--sigma-color); }
+.frame-btn[data-frame="ideva"][aria-pressed="true"]::after { background: var(--ideva-color); }
+.frame-btn[data-frame="phworge"][aria-pressed="true"]::after { background: var(--phworge-color); }
+.frame-btn[data-frame="omega"][aria-pressed="true"]::after { background: var(--omega-color); }
+.frame-btn[data-frame="dyson"][aria-pressed="true"]::after { background: var(--dyson-color); }
+
+/* ── FUSION INDICATOR ───────────────────────────────────── */
+.fusion-indicator {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(244,114,182,0.1);
+  border: 1px solid rgba(244,114,182,0.4);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fusion-color);
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  animation: fusion-pulse 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+.fusion-indicator.visible { display: flex; }
+@keyframes fusion-pulse {
+  0%,100% { box-shadow: 0 0 6px rgba(244,114,182,0.2); }
+  50% { box-shadow: 0 0 14px rgba(244,114,182,0.45); }
+}
+.fusion-dot { width:6px; height:6px; border-radius:50%; background:var(--fusion-color); animation: dot-blink 1.2s ease-in-out infinite; }
+@keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── FUSE BUTTON ────────────────────────────────────────── */
+.fuse-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, rgba(79,152,163,0.15), rgba(168,111,223,0.15));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.fuse-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(79,152,163,0.3), rgba(168,111,223,0.3));
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 0 16px rgba(168,111,223,0.25);
+}
+.fuse-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.fuse-btn:focus-visible {
+  outline: 2px solid var(--omega-color);
+  outline-offset: 2px;
+}
+.fuse-btn.loading { pointer-events:none; }
+.fuse-btn .fuse-icon { font-size: 14px; transition: transform var(--transition); }
+.fuse-btn:hover:not(:disabled) .fuse-icon { transform: rotate(15deg) scale(1.15); }
+
+/* ── STATUS BAR ─────────────────────────────────────────── */
+.status-bar {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  min-height: 14px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+  transition: color 300ms ease;
+}
+.status-bar.active { color: var(--text-muted); }
+.status-bar.success { color: var(--dyson-color); }
+.status-bar.error { color: #f87171; }
+.status-bar.fusing { color: var(--fusion-color); }
+
+/* ── INPUT ROW ──────────────────────────────────────────── */
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.chat-textarea {
+  flex: 1;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  resize: none;
+  min-height: 44px;
+  max-height: 160px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+.chat-textarea::placeholder { color: var(--text-faint); }
+.chat-textarea:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(79,152,163,0.1);
+}
+.chat-textarea.transformed {
+  border-color: rgba(244,114,182,0.45);
+  box-shadow: 0 0 0 3px rgba(244,114,182,0.08);
+}
+.send-btn {
+  width: 40px; height: 40px;
+  background: var(--sigma-color);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #000;
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 16px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.send-btn:hover { background: #5aabb7; transform: scale(1.05); }
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { opacity:0.3; cursor:not-allowed; transform:none; }
+.send-btn:focus-visible { outline: 2px solid var(--sigma-color); outline-offset:2px; }
+
+/* ── TOOLTIP ────────────────────────────────────────────── */
+.frame-btn { position: relative; }
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #18181b;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 100;
+  text-align: center;
+  min-width: 140px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.tooltip .tt-name {
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  margin-bottom: 2px;
+}
+.tooltip .tt-desc { color: var(--text-muted); line-height: 1.4; }
+.frame-btn:hover .tooltip,
+.frame-btn:focus-visible .tooltip { opacity: 1; }
+
+/* ── SPINNER ────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: var(--fusion-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+/* ── API CONFIG PANEL ───────────────────────────────────── */
+.api-config {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.25);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.api-label { font-size:10px; font-family:var(--font-mono); color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap; }
+.api-input {
+  flex:1; min-width:160px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline:none;
+}
+.api-input:focus { border-color: var(--border-strong); }
+.api-input::placeholder { color: var(--text-faint); }
+.model-select {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline:none;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="demo-shell" role="main" aria-label="Dyson Frame Modulator Chat Demo">
+
+  <!-- Chat history -->
+  <div class="chat-history" id="chatHistory" aria-live="polite" aria-label="Chat messages">
+    <div class="msg assistant">
+      <div class="avatar" aria-hidden="true">Δ</div>
+      <div class="bubble">
+        Welcome. Select one or more <strong>Frames</strong> below, type your message, then hit <strong>Fuse ⚡</strong> to transform it through the active cognitive modulators before sending.
+        <br><br>
+        <em>Try selecting ΣΚΟΠ + ΦΩΡGΕ for a Field Collapse × Invention fusion.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat input area -->
+  <div class="chat-input-area">
+
+    <!-- Frame Modulator Row -->
+    <div class="frame-modulator" role="toolbar" aria-label="Dyson Frame Modulators">
+      <span class="frames-label" aria-hidden="true">Frames</span>
+
+      <div class="frames-row" id="framesRow">
+
+        <button class="frame-btn" data-frame="sigma" aria-pressed="false"
+          aria-label="ΣΚΟΠ Frame — Field Collapse: inject constraints that collapse solution space"
+          title="ΣΚΟΠ">
+          <span class="frame-symbol" aria-hidden="true">Σ</span>
+          <span class="frame-name">ΣΚΟΠ</span>
+          <div class="tooltip" role="tooltip">
+            <span class="tt-name">ΣΚΟΠ — Field Collapse</span>
+            <span class="tt-desc">Injects precise constraints.<br>Compresses solution space to eigenstate.</span>
+          </div>
+        </button>
+
+        <button class="frame-btn" data-frame="ideva" aria-pressed="false"
+          aria-label="IDEVA Frame — Compression: compress to maximum signal density"
+          title="IDEVA">
+          <span class="frame-symbol" aria-hidden="true">Ω</span>
+          <span class="frame-name">IDEVA</span>
+          <div class="tooltip" role="tooltip">
+            <span class="tt-name">IDEVA Ω — Compression</span>
+            <span class="tt-desc">Maximum signal per token.<br>Removes all non-essential structure.</span>
+          </div>
+        </button>
+
+        <button class="frame-btn" data-frame="phworge" aria-pressed="false"
+          aria-label="ΦΩΡGΕ Frame — Invention: expand category and generate novel connections"
+          title="ΦΩΡGΕ">
+          <span class="frame-symbol" aria-hidden="true">Φ</span>
+          <span class="frame-name">ΦΩΡGΕ</span>
+          <div class="tooltip" role="tooltip">
+            <span class="tt-name">ΦΩΡGΕ — Invention Engine</span>
+            <span class="tt-desc">Expands category. Seeds productive<br>contradictions. Maximum creativity.</span>
+          </div>
+        </button>
+
+        <button class="frame-btn" data-frame="omega" aria-pressed="false"
+          aria-label="ΩMEGA Frame — Cross-Domain Bridge: find hidden isomorphisms across fields"
+          title="ΩMEGA">
+          <span class="frame-symbol" aria-hidden="true">∞</span>
+          <span class="frame-name">ΩMEGA</span>
+          <div class="tooltip" role="tooltip">
+            <span class="tt-name">ΩMEGA — Cross-Domain Bridge</span>
+            <span class="tt-desc">Finds hidden isomorphisms.<br>Bridges unrelated fields.</span>
+          </div>
+        </button>
+
+        <button class="frame-btn" data-frame="dyson" aria-pressed="false"
+          aria-label="Dyson Frame — Harvest: identify uncaptured capacity before building"
+          title="Dyson">
+          <span class="frame-symbol" aria-hidden="true">◉</span>
+          <span class="frame-name">Dyson</span>
+          <div class="tooltip" role="tooltip">
+            <span class="tt-name">Dyson — Harvest Geometry</span>
+            <span class="tt-desc">Capture existing capacity first.<br>Zero wasted surface area.</span>
+          </div>
+        </button>
+
+      </div>
+
+      <div class="fusion-indicator" id="fusionIndicator" aria-live="polite">
+        <span class="fusion-dot" aria-hidden="true"></span>
+        <span id="fusionLabel">FUSION</span>
+      </div>
+
+      <button class="fuse-btn" id="fuseBtn" disabled
+        aria-label="Fuse: transform input text through active frames via LLM"
+        aria-describedby="statusBar">
+        <span class="fuse-icon" aria-hidden="true">⚡</span>
+        FUSE
+      </button>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar" role="status" aria-live="polite">
+      Select frames to activate transformation
+    </div>
+
+    <!-- Input row -->
+    <div class="input-row">
+      <textarea
+        class="chat-textarea"
+        id="chatInput"
+        placeholder="Type a message… then Fuse it through active Frames before sending"
+        rows="1"
+        aria-label="Chat message input"
+        aria-multiline="true"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" disabled aria-label="Send message">➤</button>
+    </div>
+
+  </div>
+
+  <!-- API Config -->
+  <div class="api-config" aria-label="LLM API configuration">
+    <span class="api-label">LiteLLM</span>
+    <input class="api-input" id="apiBase" type="text"
+      placeholder="API base URL (e.g. https://your-litellm.example.com/v1)"
+      aria-label="LiteLLM API base URL"/>
+    <input class="api-input" id="apiKey" type="password"
+      placeholder="API key"
+      style="max-width:160px"
+      aria-label="API key"/>
+    <select class="model-select" id="modelSelect" aria-label="LLM model">
+      <option value="gpt-4.5-preview">gpt-4.5-preview (Abacus)</option>
+      <option value="gpt-4o">gpt-4o</option>
+      <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet</option>
+      <option value="deepseek/deepseek-r1">deepseek-r1</option>
+      <option value="custom">custom…</option>
+    </select>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   FRAME DEFINITIONS
+   Interface: { id, name, symbol, description, systemPrompt }
+═══════════════════════════════════════════════════════════ */
+const FRAMES = {
+  sigma: {
+    id: 'sigma',
+    name: 'ΣΚΟΠ',
+    symbol: 'Σ',
+    description: 'Field Collapse — inject precise constraints that collapse solution space to eigenstate',
+    systemPrompt: `You are applying the ΣΚΟΠ Field Collapse frame.
+Transform the following text by:
+1. Identifying the core constraint or irreducible requirement hidden in the message
+2. Stripping all redundant scope — keep only what is strictly necessary
+3. Reformulating the message so it is maximally precise and constraint-rich
+4. Each word must earn its place; remove anything that does not add constraint
+Output only the transformed text. No explanation. No preamble.`,
+  },
+  ideva: {
+    id: 'ideva',
+    name: 'IDEVA',
+    symbol: 'Ω',
+    description: 'Compression — maximum signal per token, remove all non-essential structure',
+    systemPrompt: `You are applying the IDEVA Ω Compression frame.
+Transform the following text by:
+1. Compressing it to maximum information density — every token must carry signal
+2. Eliminating filler words, hedging, redundant context
+3. Preserving all essential meaning and nuance in the most compact form possible
+4. The output should be shorter and denser than the input, not longer
+Output only the transformed text. No explanation. No preamble.`,
+  },
+  phworge: {
+    id: 'phworge',
+    name: 'ΦΩΡGΕ',
+    symbol: 'Φ',
+    description: 'Invention Engine — expand category, seed productive contradictions',
+    systemPrompt: `You are applying the ΦΩΡGΕ Invention frame.
+Transform the following text by:
+1. Expanding the solution category — ask what new problem class this opens, not just solves
+2. Surfacing productive contradictions or tensions embedded in the request
+3. Adding at least one cross-domain bridge or unexpected analogy that genuinely illuminates the core
+4. Seeding the message with a question that generates its own successor
+Output only the transformed text. No explanation. No preamble.`,
+  },
+  omega: {
+    id: 'omega',
+    name: 'ΩMEGA',
+    symbol: '∞',
+    description: 'Cross-Domain Bridge — find hidden isomorphisms, bridge unrelated fields',
+    systemPrompt: `You are applying the ΩMEGA Cross-Domain Bridge frame.
+Transform the following text by:
+1. Identifying the abstract pattern structure underneath the surface request
+2. Finding at least one isomorphic pattern from an unrelated domain (biology, physics, economics, music, etc.)
+3. Reframing the message using that cross-domain lens to reveal non-obvious structure
+4. The bridge must be structurally real, not decorative metaphor
+Output only the transformed text. No explanation. No preamble.`,
+  },
+  dyson: {
+    id: 'dyson',
+    name: 'Dyson',
+    symbol: '◉',
+    description: 'Harvest Geometry — capture existing capacity before building anything new',
+    systemPrompt: `You are applying the Dyson Harvest Geometry frame.
+Transform the following text by:
+1. Auditing what already exists that could satisfy this request without building anything new
+2. Identifying uncaptured capacity, existing tools, or already-solved adjacent problems
+3. Reformulating the message to harvest before building — what is available that is being wasted?
+4. Surface zero-cost wins that the original framing was overlooking
+Output only the transformed text. No explanation. No preamble.`,
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   FUSION FRAME DEFINITIONS
+   Key: sorted comma-joined IDs, e.g. "ideva,sigma"
+═══════════════════════════════════════════════════════════ */
+const FUSION_FRAMES = {
+  'ideva,sigma': {
+    name: 'COMPRESSION COLLAPSE',
+    description: 'Compress to eigenstate: maximum constraint at minimum tokens',
+    systemPrompt: `You are applying the ΣΚΟΠ × IDEVA Fusion: Compression Collapse.
+Transform the following text by:
+1. Finding the single irreducible constraint (ΣΚΟΠ)
+2. Expressing it in the absolute minimum tokens possible (IDEVA)
+3. The result should be a one or two sentence statement of maximum precision and density
+Output only the transformed text. No explanation.`,
+  },
+  'phworge,sigma': {
+    name: 'INVENTION GATE',
+    description: 'Collapse constraints then explode invention space',
+    systemPrompt: `You are applying the ΣΚΟΠ × ΦΩΡGΕ Fusion: Invention Gate.
+Transform the following text by:
+1. First collapsing it to the core tension (ΣΚΟΠ) — what is the real problem?
+2. Then from that compressed core, explode outward: what new category does solving this open?
+3. Seed the message with the productive contradiction that will generate the next invention
+Output only the transformed text. No explanation.`,
+  },
+  'omega,phworge': {
+    name: 'CROSS-DOMAIN INVENTION',
+    description: 'Find the abstract pattern, then invent across it',
+    systemPrompt: `You are applying the ΦΩΡGΕ × ΩMEGA Fusion: Cross-Domain Invention.
+Transform the following text by:
+1. Finding the abstract isomorphic pattern (ΩMEGA) underlying the request
+2. Using that pattern as a launch pad for genuine invention (ΦΩΡGΕ)
+3. The result should propose a solution that could not have been found without the cross-domain bridge
+Output only the transformed text. No explanation.`,
+  },
+  'dyson,sigma': {
+    name: 'HARVEST GATE',
+    description: 'Collapse to constraint, then audit what already exists',
+    systemPrompt: `You are applying the ΣΚΟΠ × Dyson Fusion: Harvest Gate.
+Transform the following text by:
+1. Defining the precise constraint (ΣΚΟΠ)
+2. Auditing what already exists that satisfies that exact constraint without new build (Dyson)
+3. The result should surface why building might be unnecessary
+Output only the transformed text. No explanation.`,
+  },
+  'dyson,ideva': {
+    name: 'DENSE HARVEST',
+    description: 'Harvest all existing capacity, expressed at maximum density',
+    systemPrompt: `You are applying the IDEVA × Dyson Fusion: Dense Harvest.
+Transform the following text by:
+1. Identifying everything already available that addresses the request (Dyson)
+2. Expressing that harvest audit in the minimum tokens possible (IDEVA)
+Output only the transformed text. No explanation.`,
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+const state = {
+  activeFrames: new Set(),
+  isTransformed: false,
+  isFusing: false,
+};
+
+/* ═══════════════════════════════════════════════════════════
+   DOM REFS
+═══════════════════════════════════════════════════════════ */
+const chatInput = document.getElementById('chatInput');
+const sendBtn   = document.getElementById('sendBtn');
+const fuseBtn   = document.getElementById('fuseBtn');
+const statusBar = document.getElementById('statusBar');
+const fusionIndicator = document.getElementById('fusionIndicator');
+const fusionLabel = document.getElementById('fusionLabel');
+const chatHistory = document.getElementById('chatHistory');
+const frameBtns = document.querySelectorAll('.frame-btn');
+
+/* ═══════════════════════════════════════════════════════════
+   FRAME TOGGLE
+═══════════════════════════════════════════════════════════ */
+frameBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.frame;
+    const isActive = btn.getAttribute('aria-pressed') === 'true';
+    if (isActive) {
+      state.activeFrames.delete(id);
+      btn.setAttribute('aria-pressed', 'false');
+    } else {
+      state.activeFrames.add(id);
+      btn.setAttribute('aria-pressed', 'true');
+    }
+    state.isTransformed = false;
+    chatInput.classList.remove('transformed');
+    updateUI();
+  });
+
+  // Keyboard: Space/Enter to toggle
+  btn.addEventListener('keydown', e => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      btn.click();
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════
+   UI UPDATE
+═══════════════════════════════════════════════════════════ */
+function updateUI() {
+  const frameCount = state.activeFrames.size;
+  const hasInput = chatInput.value.trim().length > 0;
+  const canFuse = frameCount > 0 && hasInput && !state.isFusing;
+
+  fuseBtn.disabled = !canFuse;
+  sendBtn.disabled = !hasInput;
+
+  // Fusion indicator
+  if (frameCount >= 2) {
+    const key = [...state.activeFrames].sort().join(',');
+    const fusion = FUSION_FRAMES[key];
+    fusionIndicator.classList.add('visible');
+    if (fusion) {
+      fusionLabel.textContent = fusion.name;
+    } else {
+      const names = [...state.activeFrames].map(id => FRAMES[id]?.name || id).join(' × ');
+      fusionLabel.textContent = names + ' FUSION';
+    }
+  } else {
+    fusionIndicator.classList.remove('visible');
+  }
+
+  // Status bar
+  if (state.isFusing) {
+    setStatus('fusing', `⚡ Fusing through ${[...state.activeFrames].map(id => FRAMES[id]?.name).join(' × ')}…`);
+    return;
+  }
+
+  if (frameCount === 0) {
+    setStatus('', 'Select frames to activate transformation');
+  } else if (frameCount === 1) {
+    const id = [...state.activeFrames][0];
+    setStatus('active', `Frame active: ${FRAMES[id].name} — ${FRAMES[id].description}`);
+  } else {
+    const key = [...state.activeFrames].sort().join(',');
+    const fusion = FUSION_FRAMES[key];
+    if (fusion) {
+      setStatus('active', `✦ ${fusion.name}: ${fusion.description}`);
+    } else {
+      const names = [...state.activeFrames].map(id => FRAMES[id]?.name).join(' × ');
+      setStatus('active', `Emergent fusion: ${names}`);
+    }
+  }
+}
+
+function setStatus(cls, msg) {
+  statusBar.className = 'status-bar' + (cls ? ' ' + cls : '');
+  statusBar.textContent = msg;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTO-RESIZE TEXTAREA
+═══════════════════════════════════════════════════════════ */
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
+  state.isTransformed = false;
+  chatInput.classList.remove('transformed');
+  updateUI();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   FUSE — LLM CALL
+═══════════════════════════════════════════════════════════ */
+fuseBtn.addEventListener('click', async () => {
+  const text = chatInput.value.trim();
+  if (!text || state.activeFrames.size === 0) return;
+
+  state.isFusing = true;
+  fuseBtn.classList.add('loading');
+  fuseBtn.innerHTML = '<span class="spinner"></span> FUSING';
+  updateUI();
+
+  try {
+    const transformed = await fuseText(text, [...state.activeFrames]);
+    chatInput.value = transformed;
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
+    chatInput.classList.add('transformed');
+    state.isTransformed = true;
+    chatInput.focus();
+    setStatus('success', `✓ Transformation applied — edit freely before sending`);
+  } catch (err) {
+    setStatus('error', `✗ ${err.message}`);
+  } finally {
+    state.isFusing = false;
+    fuseBtn.classList.remove('loading');
+    fuseBtn.innerHTML = '<span class="fuse-icon" aria-hidden="true">⚡</span> FUSE';
+    sendBtn.disabled = chatInput.value.trim().length === 0;
+    fuseBtn.disabled = chatInput.value.trim().length === 0 || state.activeFrames.size === 0;
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   FUSE TEXT — builds system prompt and calls LLM
+═══════════════════════════════════════════════════════════ */
+async function fuseText(text, activeFrameIds) {
+  const apiBase = (document.getElementById('apiBase').value.trim() || '').replace(/\/$/, '');
+  const apiKey  = document.getElementById('apiKey').value.trim();
+  const model   = document.getElementById('modelSelect').value;
+
+  // Build combined system prompt
+  let systemPrompt;
+  const key = [...activeFrameIds].sort().join(',');
+
+  if (activeFrameIds.length === 1) {
+    systemPrompt = FRAMES[activeFrameIds[0]].systemPrompt;
+  } else if (FUSION_FRAMES[key]) {
+    systemPrompt = FUSION_FRAMES[key].systemPrompt;
+  } else {
+    // Generic multi-frame combinator
+    const framePrompts = activeFrameIds.map(id => FRAMES[id].systemPrompt).join('\n\n---\n\n');
+    systemPrompt = `You are applying a multi-frame fusion transformation. Apply ALL of the following frames sequentially and simultaneously to produce a single output that embodies all active cognitive modulators:\n\n${framePrompts}\n\nOutput only the final transformed text. No explanation. No preamble.`;
+  }
+
+  // If no API configured, use a local demo transformation
+  if (!apiBase || !apiKey) {
+    return localDemoTransform(text, activeFrameIds, key);
+  }
+
+  const endpoint = `${apiBase}/chat/completions`;
+  const payload = {
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: text },
+    ],
+    max_tokens: 1024,
+    temperature: activeFrameIds.includes('phworge') ? 0.9 : 0.4,
+  };
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`LLM API error ${res.status}: ${err.slice(0,120)}`);
+  }
+
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content?.trim() || text;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOCAL DEMO TRANSFORM (no API configured)
+   Shows the transformation character without an LLM call
+═══════════════════════════════════════════════════════════ */
+function localDemoTransform(text, ids, key) {
+  // Simulate ~400ms latency
+  return new Promise(resolve => {
+    setTimeout(() => {
+      let result = text;
+
+      if (ids.includes('sigma') && !ids.includes('phworge')) {
+        // Compression: strip hedging, make precise
+        result = result
+          .replace(/\b(please|could you|would you|can you|I was wondering if|I think|maybe|perhaps|just|basically|essentially|actually|really|very)\b\s*/gi, '')
+          .replace(/\s+/g, ' ').trim();
+        if (!result.endsWith('.') && !result.endsWith('?') && !result.endsWith('!')) result += '.';
+        result = `[ΣΚΟΠ-COLLAPSED] ${result}`;
+      }
+      if (ids.includes('ideva') && ids.length === 1) {
+        const words = result.split(' ');
+        result = words.slice(0, Math.ceil(words.length * 0.6)).join(' ');
+        if (!result.endsWith('.')) result += '.';
+        result = `[IDEVA-DENSE] ${result}`;
+      }
+      if (ids.includes('phworge') && ids.length === 1) {
+        result = `[ΦΩΡGΕ-INVENTION] ${result}\n\nTension embedded: What new category does solving this open? What assumption, if false, makes this trivially solvable? The landscape is already pointing toward the answer.`;
+      }
+      if (ids.includes('omega') && ids.length === 1) {
+        result = `[ΩMEGA-BRIDGE] ${result}\n\nIsomorphic pattern: This request shares structure with [evolutionary fitness landscape optimization] — the solution space narrows not by addition but by constraint removal.`;
+      }
+      if (ids.includes('dyson') && ids.length === 1) {
+        result = `[DYSON-HARVEST] Before building: audit what already exists. ${result}\n\nUncaptured capacity: What adjacent solved problem can be harvested here at zero cost?`;
+      }
+      if (ids.length >= 2) {
+        const names = ids.map(id => FRAMES[id]?.name).join(' × ');
+        const fusion = FUSION_FRAMES[key];
+        const label = fusion ? fusion.name : `${names} FUSION`;
+        result = `[${label}] ${result}\n\n⚡ Note: Connect your LiteLLM endpoint in the API config below for real LLM transformation.`;
+      }
+
+      resolve(result);
+    }, 380 + Math.random() * 300);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SEND MESSAGE
+═══════════════════════════════════════════════════════════ */
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  // Add user message to history
+  const userEl = document.createElement('div');
+  userEl.className = 'msg user';
+  userEl.innerHTML = `
+    <div class="avatar" aria-hidden="true">U</div>
+    <div class="bubble">${escapeHtml(text)}</div>
+  `;
+  chatHistory.appendChild(userEl);
+
+  // Add assistant placeholder
+  const assistantEl = document.createElement('div');
+  assistantEl.className = 'msg assistant';
+  const frameInfo = state.activeFrames.size > 0
+    ? ` <em>[Sent through: ${[...state.activeFrames].map(id => FRAMES[id]?.name).join(' × ')}]</em>`
+    : '';
+  assistantEl.innerHTML = `
+    <div class="avatar" aria-hidden="true">Δ</div>
+    <div class="bubble">Message received.${frameInfo} Your transformed message has been sent to the model.</div>
+  `;
+  chatHistory.appendChild(assistantEl);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
+  // Reset
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  chatInput.classList.remove('transformed');
+  state.isTransformed = false;
+  updateUI();
+  setStatus('', 'Select frames to activate transformation');
+}
+
+sendBtn.addEventListener('click', sendMessage);
+
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (chatInput.value.trim()) sendMessage();
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════ */
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Custom model input
+document.getElementById('modelSelect').addEventListener('change', function() {
+  if (this.value === 'custom') {
+    const custom = prompt('Enter model name (e.g. gpt-4.5-preview, abacus/gpt-5):');
+    if (custom) {
+      const opt = document.createElement('option');
+      opt.value = custom;
+      opt.textContent = custom;
+      this.insertBefore(opt, this.firstChild);
+      this.value = custom;
+    } else {
+      this.value = 'gpt-4.5-preview';
+    }
+  }
+});
+
+// Initial state
+updateUI();
+</script>
+</body>
+</html>

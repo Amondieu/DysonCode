@@ -1,0 +1,14 @@
+{
+  "id": "msg-claim-next-cline-mquc0gex",
+  "from": "orchestrator-loop",
+  "to": "shared",
+  "type": "task_claim",
+  "timestamp": "2026-06-26T02:48:32.793Z",
+  "task_id": "next-cline",
+  "payload": {
+    "vendor": "other",
+    "priority": "low"
+  },
+  "requires_response": true,
+  "expires_at": "2026-06-26T03:18:32.793Z"
+}

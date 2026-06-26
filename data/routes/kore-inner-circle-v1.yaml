@@ -1,0 +1,61 @@
+route:
+  name: kore-inner-circle-v1
+  version: 1
+  routing_mode: hybrid_local  # v1: hybrid_local, v2: cloud_first
+  memory_local_only: true     # harte Invariante
+
+  roles:
+
+    architect:
+      local:          coder          # SET-A: Qwen2.5-Coder-14B Q8
+      cloud:          burst          # deepseek-v4-pro (Key 1)
+      fallback_local: deep           # SET-C: Qwen2.5-Coder-32B Q4
+      emergency_local: coder
+      complexity_threshold: 0.5
+      max_tokens: 4096
+      temperature: 0.1
+      artefact_out: BuildManifest
+
+    builder:
+      local:          coder          # SET-A
+      cloud_primary:  flash-k2       # deepseek-v4-flash (Key 2)
+      cloud_secondary: mid           # deepseek-v4-pro (Key 2)
+      fallback_local: forge-base     # Ring 0
+      synergy_gate:   HYBRID_CD      # → burst bei Komplexität
+      max_tokens: 8192
+      temperature: 0.1
+      artefact_out: CodeDelta
+
+    critic:
+      local:          forge-base     # Ring 0
+      cloud:          flash-sn-think # SambaNova DeepSeek + thinking
+      fallback_local: forge-base
+      joker_trigger:  0.20
+      max_tokens: 2048
+      temperature: 0.1
+      artefact_out: FailureNote
+
+    tester:
+      local:          micro-coder
+      cloud:          judge          # SambaNova gpt-oss-120b
+      fallback_local: micro-coder
+      max_tokens: 512
+      temperature: 0.0
+      artefact_out: TestResult
+
+    memory_keeper:
+      local:          fast-draft     # SET-D: Qwen2.5-7B Q8
+      cloud:          never          # NIE Cloud
+      fallback_local: fast-draft
+      max_tokens: 1024
+      temperature: 0.2
+      artefact_out: MemorySnapshot
+
+  second_opinion:
+    complexity_gate: 0.5
+    vesica_pair: [c, d]
+    vesica_gap_gate: 0.20
+
+  privacy_gates:
+    local_only_aliases: [researcher, deep]
+    pii_fail_closed: true

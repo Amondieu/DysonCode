@@ -1,0 +1,16 @@
+
+DEBUG: Starting main process...
+DEBUG: electron loaded, typeof: object
+DEBUG: app: object BrowserWindow: function
+DEBUG: Loading modules...
+DEBUG: Modules loaded
+DEBUG: DB path set
+DEBUG: Main process setup complete
+DEBUG: app.whenReady
+DEBUG: IPC handlers registered
+DEBUG: Creating window...
+DEBUG: Window created
+DEBUG: Loading file: C:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\dist\renderer\index.html
+DEBUG: createWindow() returned
+DEBUG: Creating terminal...
+DEBUG: Terminal created

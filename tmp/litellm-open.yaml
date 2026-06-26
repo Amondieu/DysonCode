@@ -1,0 +1,8 @@
+model_list:
+  - model_name: local-set-a
+    litellm_params:
+      model: openai/SET-A
+      api_base: http://127.0.0.1:8080/v1
+      api_key: none
+general_settings:
+  port: 4011

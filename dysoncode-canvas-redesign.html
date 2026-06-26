@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DysonCode — Canvas Redesign Spec</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0e10;
+  --surface:#141416;
+  --surface2:#1a1a1e;
+  --surface3:#202024;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:#e8e8ea;
+  --muted:#888890;
+  --faint:#444450;
+  --accent:#6c8cf8;
+  --accent2:#4fc4cf;
+  --green:#3dd68c;
+  --orange:#f5a623;
+  --red:#ff6b6b;
+  --font:'Satoshi',sans-serif;
+  --r:8px;
+  --r2:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;line-height:1.5;overflow:hidden;height:100vh}
+
+/* ── TOP BAR ── */
+.topbar{height:36px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;-webkit-app-region:drag;flex-shrink:0}
+.topbar-logo{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.5px;-webkit-app-region:no-drag}
+.topbar-spacer{flex:1}
+.kore-badge{background:rgba(61,214,140,0.12);color:var(--green);border:1px solid rgba(61,214,140,0.25);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;-webkit-app-region:no-drag}
+.tab-bar{display:flex;gap:2px;-webkit-app-region:no-drag}
+.tab{padding:4px 14px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{color:var(--text);background:var(--surface3)}
+
+/* ── SHELL ── */
+.shell{display:flex;height:calc(100vh - 36px)}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-section{padding:10px 10px 4px;font-size:10px;font-weight:700;color:var(--faint);letter-spacing:.8px;text-transform:uppercase}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:6px 12px;color:var(--muted);font-size:12px;cursor:pointer;border-radius:6px;margin:1px 6px;transition:all .15s}
+.sidebar-item:hover{background:var(--surface2);color:var(--text)}
+.sidebar-item.active{background:rgba(108,140,248,0.12);color:var(--accent)}
+.sidebar-item .dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex-shrink:0}
+.sidebar-item.active .dot{background:var(--accent)}
+.sidebar-divider{height:1px;background:var(--border);margin:6px 10px}
+.sidebar-bottom{margin-top:auto;padding:10px}
+.prompt-vault-btn{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;text-align:left;transition:all .15s}
+.prompt-vault-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── MAIN CANVAS ── */
+.canvas-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── MODE BAR ── */
+.mode-bar{height:40px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:4px;flex-shrink:0}
+.mode-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted);border:1px solid transparent}
+.mode-pill:hover{color:var(--text);background:var(--surface2)}
+.mode-pill.active{color:var(--accent);background:rgba(108,140,248,0.1);border-color:rgba(108,140,248,0.25)}
+.mode-pill.active.plan{color:var(--accent2);background:rgba(79,196,207,0.1);border-color:rgba(79,196,207,0.25)}
+.mode-pill.active.execute{color:var(--green);background:rgba(61,214,140,0.1);border-color:rgba(61,214,140,0.25)}
+.mode-sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.mode-bar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.harness-score{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.harness-bar{width:80px;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.harness-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--green));border-radius:2px;width:0%;transition:width .4s}
+.harness-val{font-size:11px;font-weight:600;color:var(--orange);min-width:28px}
+.execute-btn{display:flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(61,214,140,0.15);border:1px solid rgba(61,214,140,0.3);border-radius:20px;color:var(--green);font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;opacity:.5}
+.execute-btn.ready{opacity:1;animation:pulse-green 2s infinite}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(61,214,140,0)}50%{box-shadow:0 0 0 4px rgba(61,214,140,0.15)}}
+
+/* ── WORKSPACE ── */
+.workspace{flex:1;display:flex;overflow:hidden}
+
+/* ── CHAT PANEL ── */
+.chat-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:320px;position:relative}
+.chat-header{padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chat-title{font-size:12px;font-weight:600;color:var(--text)}
+.chat-subtitle{font-size:11px;color:var(--muted)}
+.chat-header-right{margin-left:auto;display:flex;gap:6px}
+.icon-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted);font-size:12px;transition:all .15s}
+.icon-btn:hover{border-color:var(--border2);color:var(--text)}
+
+.messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-track{background:transparent}
+.messages::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+
+.msg{display:flex;gap:8px;max-width:100%}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px}
+.avatar.ai-arch{background:rgba(108,140,248,0.2);color:var(--accent);border:1px solid rgba(108,140,248,0.3)}
+.avatar.ai-rev{background:rgba(79,196,207,0.2);color:var(--accent2);border:1px solid rgba(79,196,207,0.3)}
+.avatar.user{background:var(--surface3);color:var(--muted);border:1px solid var(--border)}
+.bubble{max-width:calc(100% - 36px);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);padding:8px 10px;font-size:12.5px;line-height:1.55}
+.bubble.user{background:rgba(108,140,248,0.1);border-color:rgba(108,140,248,0.2)}
+.bubble-label{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;letter-spacing:.3px}
+.bubble-label.reviewer{color:var(--accent2)}
+.bubble-label.user-lbl{color:var(--muted)}
+.bubble p{color:var(--text)}
+.bubble p + p{margin-top:4px}
+.typing{display:flex;gap:4px;padding:4px 0 2px}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:bounce .8s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* ── INPUT AREA ── */
+.input-area{padding:10px 12px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.hint-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{padding:3px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(108,140,248,0.08)}
+.input-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r2);display:flex;align-items:flex-end;gap:8px;padding:8px 10px;transition:border-color .15s}
+.input-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,140,248,0.1)}
+.input-box textarea{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13px;resize:none;min-height:20px;max-height:100px;line-height:1.5}
+.input-box textarea::placeholder{color:var(--faint)}
+.send-btn{width:30px;height:30px;background:var(--accent);border:none;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.send-btn:hover{background:#8aa4ff;transform:scale(1.05)}
+.send-btn svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── DIVIDER ── */
+.divider{width:4px;background:var(--border);cursor:col-resize;flex-shrink:0;transition:background .15s;position:relative}
+.divider:hover{background:var(--accent)}
+.divider::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:32px;background:var(--border2);border-radius:1px}
+
+/* ── BLUEPRINT PANEL ── */
+.blueprint-panel{width:380px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);overflow:hidden;background:var(--surface)}
+.bp-header{padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.bp-title{font-size:12px;font-weight:600;color:var(--accent2)}
+.bp-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.bp-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.bp-body::-webkit-scrollbar{width:4px}
+.bp-body::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+.bp-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.bp-block-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px}
+.bp-block-content{font-size:12px;color:var(--text);line-height:1.6}
+.bp-module{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;color:var(--text)}
+.bp-module .m-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.bp-module .m-dep{font-size:10px;color:var(--muted);margin-left:auto}
+.bp-score-row{display:flex;align-items:center;gap:8px;margin-top:4px}
+.rc-badge{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(61,214,140,0.1);color:var(--green);border:1px solid rgba(61,214,140,0.2)}
+.rc-badge.warn{background:rgba(245,166,35,0.1);color:var(--orange);border-color:rgba(245,166,35,0.2)}
+.bp-footer{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px}
+.btn-primary{flex:1;padding:8px;background:var(--green);border:none;border-radius:var(--r);color:#0a1f12;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:hover{background:#5ae8a8}
+.btn-secondary{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+
+/* ── FLOATING WINDOW (draggable intent panel) ── */
+.float-window{position:absolute;top:60px;left:40px;width:280px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden;z-index:10}
+.float-titlebar{background:var(--surface3);padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:grab;border-bottom:1px solid var(--border)}
+.float-dots{display:flex;gap:5px}
+.float-dot{width:10px;height:10px;border-radius:50%}
+.float-dot.r{background:#ff5f57}
+.float-dot.y{background:#febc2e}
+.float-dot.g{background:#28c840}
+.float-title{font-size:11px;font-weight:600;color:var(--muted);margin-left:4px}
+.float-body{padding:12px}
+.float-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);margin-bottom:6px}
+.float-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:8px;color:var(--text);font-family:var(--font);font-size:12px;resize:none;outline:none;min-height:56px;transition:border-color .15s}
+.float-textarea:focus{border-color:var(--accent)}
+.float-sep{height:1px;background:var(--border);margin:10px 0}
+
+/* ── STATUS BAR ── */
+.statusbar{height:22px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:12px;font-size:11px;color:var(--faint);flex-shrink:0}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.status-sep{width:1px;height:12px;background:var(--border)}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-logo">⬡ DysonCode</span>
+  <div class="tab-bar">
+    <div class="tab">CHAT</div>
+    <div class="tab">FLOW</div>
+    <div class="tab active">CANVAS</div>
+    <div class="tab">MESH</div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <span class="kore-badge">● KORE local</span>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">Workspace</div>
+    <div class="sidebar-item"><div class="dot"></div>DysonCode</div>
+    <div class="sidebar-item active"><div class="dot"></div>New Session</div>
+    <div class="sidebar-item"><div class="dot"></div>Test</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Prompt Vault</div>
+    <div class="sidebar-item"><div class="dot"></div>Architect Breakdown</div>
+    <div class="sidebar-item"><div class="dot"></div>Builder Tight Loop</div>
+    <div class="sidebar-item"><div class="dot"></div>Reviewer Critic</div>
+    <div class="sidebar-bottom">
+      <button class="prompt-vault-btn">＋ New Prompt</button>
+    </div>
+  </div>
+
+  <!-- MAIN CANVAS -->
+  <div class="canvas-main">
+
+    <!-- MODE BAR -->
+    <div class="mode-bar">
+      <div class="mode-pill active" style="color:var(--muted)">💬 Ask</div>
+      <div class="mode-sep"></div>
+      <div class="mode-pill active plan">🗺 Plan</div>
+      <div class="mode-sep"></div>
+      <div class="mode-pill">⚡ Execute</div>
+      <div class="mode-sep"></div>
+      <div class="mode-pill">🔍 Review</div>
+      <div class="mode-bar-right">
+        <div class="harness-score">
+          <span>Harness</span>
+          <div class="harness-bar"><div class="harness-fill" id="hf" style="width:62%"></div></div>
+          <span class="harness-val" id="hv" style="color:var(--orange)">6.2</span>
+        </div>
+        <button class="execute-btn ready" id="execBtn">⚡ Start Execution</button>
+      </div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div class="workspace">
+
+      <!-- CHAT PANEL -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div>
+            <div class="chat-title">Planning Chat</div>
+            <div class="chat-subtitle">Architect + Reviewer · Blueprint Mode</div>
+          </div>
+          <div class="chat-header-right">
+            <div class="icon-btn" title="Toggle reviewer">👥</div>
+            <div class="icon-btn" title="Full auto">⚡</div>
+            <div class="icon-btn" title="Settings">⚙</div>
+          </div>
+        </div>
+
+        <div class="messages">
+
+          <!-- User msg -->
+          <div class="msg user">
+            <div class="avatar user">U</div>
+            <div class="bubble user">
+              <div class="bubble-label user-lbl">You</div>
+              <p>Design the next DysonCode slice — routing improvements and harness scoring.</p>
+            </div>
+          </div>
+
+          <!-- Architect -->
+          <div class="msg">
+            <div class="avatar ai-arch">A</div>
+            <div class="bubble">
+              <div class="bubble-label">Architect · flash-k2</div>
+              <p>I'll structure this as three dependency-safe modules. The harness scorer is the foundation — it must exist before the routing improvements can consume its output score.</p>
+              <p style="color:var(--muted);font-size:11.5px;margin-top:6px">Modules: <span style="color:var(--accent)">harness-scorer</span> → <span style="color:var(--accent)">routing-engine</span> → <span style="color:var(--accent)">mode-switcher</span></p>
+            </div>
+          </div>
+
+          <!-- Reviewer -->
+          <div class="msg">
+            <div class="avatar ai-rev">R</div>
+            <div class="bubble">
+              <div class="bubble-label reviewer">Reviewer · flash-k2</div>
+              <p>Missing: the harness scorer needs a <strong>scoring schema</strong> first — RC1–RC7 weights aren't defined. Without it, the scorer outputs an ungrounded number. Add a <span style="color:var(--orange)">scoring-schema</span> module as dep 0.</p>
+            </div>
+          </div>
+
+          <!-- Typing indicator -->
+          <div class="msg">
+            <div class="avatar ai-arch">A</div>
+            <div class="bubble">
+              <div class="bubble-label">Architect · thinking</div>
+              <div class="typing"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+          <div class="hint-chips">
+            <div class="chip">Refine the plan</div>
+            <div class="chip">Add risk assessment</div>
+            <div class="chip">Suggest smaller slice</div>
+            <div class="chip">Validate dependencies</div>
+            <div class="chip">Score this blueprint</div>
+          </div>
+          <div class="input-box">
+            <textarea placeholder="Discuss the plan with architect + reviewer…" rows="1"></textarea>
+            <button class="send-btn">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIVIDER (draggable) -->
+      <div class="divider" title="Drag to resize"></div>
+
+      <!-- BLUEPRINT PANEL -->
+      <div class="blueprint-panel">
+        <div class="bp-header">
+          <div>
+            <div class="bp-title">Dyson Level Blueprint</div>
+            <div class="bp-label">Live artifact · editable before execution</div>
+          </div>
+        </div>
+
+        <div class="bp-body">
+          <div class="bp-block">
+            <div class="bp-block-title">Planning Intent</div>
+            <div class="bp-block-content">Design the next DysonCode slice with routing improvements and harness scoring.</div>
+          </div>
+
+          <div class="bp-block">
+            <div class="bp-block-title">Constraints</div>
+            <div class="bp-block-content">Prioritize readability, smallest safe slices, and explicit validation.</div>
+          </div>
+
+          <div class="bp-block">
+            <div class="bp-block-title">Module Graph</div>
+            <div class="bp-module"><div class="m-dot" style="background:var(--muted)"></div>scoring-schema<span class="m-dep">dep: none</span></div>
+            <div class="bp-module"><div class="m-dot"></div>harness-scorer<span class="m-dep">dep: scoring-schema</span></div>
+            <div class="bp-module"><div class="m-dot"></div>routing-engine<span class="m-dep">dep: harness-scorer</span></div>
+            <div class="bp-module"><div class="m-dot"></div>mode-switcher<span class="m-dep">dep: routing-engine</span></div>
+          </div>
+
+          <div class="bp-block">
+            <div class="bp-block-title">Harness Score</div>
+            <div class="bp-score-row">
+              <div class="rc-badge">RC1 ✓</div>
+              <div class="rc-badge">RC2 ✓</div>
+              <div class="rc-badge warn">RC3 ?</div>
+              <div class="rc-badge">RC4 ✓</div>
+              <div class="rc-badge warn">RC5 ?</div>
+              <div class="rc-badge">RC6 ✓</div>
+              <div class="rc-badge warn">RC7 ?</div>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--muted)">Score: <strong style="color:var(--orange)">6.2 / 10</strong> · Needs RC3, RC5, RC7 to reach ratchet threshold (≥7)</div>
+          </div>
+        </div>
+
+        <div class="bp-footer">
+          <button class="btn-secondary">Synthesize</button>
+          <button class="btn-primary">⚡ Plan & Execute</button>
+        </div>
+      </div>
+
+    </div>
+    <!-- /workspace -->
+
+    <!-- STATUS BAR -->
+    <div class="statusbar">
+      <div class="status-dot"></div>
+      <span>Session #2 · Mode CANVAS · PLAN</span>
+      <div class="status-sep"></div>
+      <span>Harness: 6.2</span>
+      <div class="status-sep"></div>
+      <span>JS: Bojx35en</span>
+      <div style="margin-left:auto">Electron win32</div>
+    </div>
+
+  </div>
+  <!-- /canvas-main -->
+
+</div>
+<!-- /shell -->
+
+<!-- FLOATING INTENT WINDOW (draggable) -->
+<div class="float-window" id="floatWin">
+  <div class="float-titlebar" id="floatBar">
+    <div class="float-dots"><div class="float-dot r"></div><div class="float-dot y"></div><div class="float-dot g"></div></div>
+    <span class="float-title">Planning Intent</span>
+  </div>
+  <div class="float-body">
+    <div class="float-label">Intent</div>
+    <textarea class="float-textarea">Design the next DysonCode slice before execution.</textarea>
+    <div class="float-sep"></div>
+    <div class="float-label">Constraints</div>
+    <textarea class="float-textarea" style="min-height:40px">Smallest safe slices, explicit validation.</textarea>
+  </div>
+</div>
+
+<script>
+// Draggable float window
+const fw = document.getElementById('floatWin');
+const fb = document.getElementById('floatBar');
+let dragging = false, ox = 0, oy = 0;
+fb.addEventListener('mousedown', e => {
+  dragging = true;
+  ox = e.clientX - fw.offsetLeft;
+  oy = e.clientY - fw.offsetTop;
+  fb.style.cursor = 'grabbing';
+});
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  fw.style.left = (e.clientX - ox) + 'px';
+  fw.style.top = (e.clientY - oy) + 'px';
+});
+document.addEventListener('mouseup', () => { dragging = false; fb.style.cursor = 'grab'; });
+
+// Harness score animation
+setTimeout(() => {
+  let s = 0;
+  const interval = setInterval(() => {
+    s += 2;
+    const pct = Math.min(s, 62);
+    document.getElementById('hf').style.width = pct + '%';
+    const val = (pct / 10).toFixed(1);
+    document.getElementById('hv').textContent = val;
+    document.getElementById('hv').style.color = pct >= 70 ? 'var(--green)' : 'var(--orange)';
+    if (s >= 62) clearInterval(interval);
+  }, 20);
+}, 400);
+
+// Simulate typing then response
+setTimeout(() => {
+  const msgs = document.querySelector('.messages');
+  const typingMsg = msgs.querySelector('.msg:last-child');
+  typingMsg.querySelector('.bubble-label').textContent = 'Architect · flash-k2';
+  typingMsg.querySelector('.typing').innerHTML = '<p>Confirmed. Adding <strong style="color:var(--accent)">scoring-schema</strong> as the zero-dependency root. Updated module graph in Blueprint.</p>';
+}, 3200);
+
+// Mode pill switching
+document.querySelectorAll('.mode-pill').forEach(p => {
+  p.addEventListener('click', function() {
+    document.querySelectorAll('.mode-pill').forEach(x => x.classList.remove('active','plan','execute'));
+    this.classList.add('active');
+    const t = this.textContent.trim();
+    if (t.includes('Plan')) this.classList.add('plan');
+    if (t.includes('Execute')) this.classList.add('execute');
+  });
+});
+
+// Auto-resize textarea
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+});
+</script>
+</body>
+</html>

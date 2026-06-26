@@ -1,0 +1,86 @@
+{
+  "name": "dyson-code",
+  "version": "1.0.0",
+  "description": "Electron + Monaco + xterm.js + SQLite Chat — A Cursor-like IDE shell for jcode",
+  "main": "dist/main/index.js",
+  "author": "DysonCode",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsc -p tsconfig.main.json && vite",
+    "build": "tsc -p tsconfig.main.json && vite build && copy /Y src\\main\\index.js dist\\main\\index.js",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "start": ".\\node_modules\\electron\\dist\\electron.exe .",
+    "package": "npm run build && npx electron-builder --dir && copy /Y kore-exec\\target\\release\\kore-exec.exe release\\win-unpacked\\resources\\kore-exec.exe",
+    "pack": "electron-builder --dir && copy /Y kore-exec\\target\\release\\kore-exec.exe release\\win-unpacked\\resources\\kore-exec.exe",
+    "postpack": "copy /Y kore-exec\\target\\release\\kore-exec.exe release\\win-unpacked\\resources\\kore-exec.exe",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.8.5",
+    "better-sqlite3": "^12.11.1",
+    "chokidar": "^4.0.3",
+    "electron-log": "^5.2.4",
+    "monaco-editor": "^0.52.0",
+    "node-pty": "^1.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-resizable-panels": "^4.11.2",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-search": "^0.13.0",
+    "xterm-addon-web-links": "^0.9.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-rebuild": "^3.2.9",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-electron": "^0.28.8",
+    "vite-plugin-electron-renderer": "^0.14.6"
+  },
+  "build": {
+    "appId": "com.dysoncode.app",
+    "productName": "DysonCode",
+    "files": [
+      "dist/**/*",
+      ".env",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      },
+      {
+        "from": "kore-exec/target/release/kore-exec.exe",
+        "to": "kore-exec.exe"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

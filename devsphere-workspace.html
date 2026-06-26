@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevSphere — Split Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..700&family=Geist:wght@300..700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   DEVSPHERE — Cursor-style split workspace
+   Dark: charcoal surfaces, blue-violet accent
+   Dense monospace UI, draggable split panes
+   ===================================================== */
+
+:root {
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Fira Code', monospace;
+
+  --text-xs:   0.6875rem; /* 11px */
+  --text-sm:   0.75rem;   /* 12px */
+  --text-base: 0.8125rem; /* 13px */
+  --text-md:   0.875rem;  /* 14px */
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --transition: 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] {
+  --bg:           #0d0d0f;
+  --surface:      #111113;
+  --surface-2:    #161618;
+  --surface-3:    #1c1c1f;
+  --surface-4:    #222226;
+  --border:       rgba(255,255,255,0.07);
+  --border-focus: rgba(255,255,255,0.14);
+  --text:         #e8e8ea;
+  --text-muted:   #888890;
+  --text-faint:   #44444c;
+  --accent:       #6c8cf8;
+  --accent-hover: #8aabff;
+  --accent-dim:   rgba(108,140,248,0.12);
+  --accent-glow:  rgba(108,140,248,0.2);
+  --green:        #3dd68c;
+  --yellow:       #f5c542;
+  --red:          #f26e6e;
+  --orange:       #f59c42;
+  --drag-handle:  rgba(255,255,255,0.05);
+  --drag-active:  rgba(108,140,248,0.35);
+  --scrollbar:    rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] {
+  --bg:           #f5f5f7;
+  --surface:      #ffffff;
+  --surface-2:    #f0f0f2;
+  --surface-3:    #e8e8ec;
+  --surface-4:    #dddde1;
+  --border:       rgba(0,0,0,0.08);
+  --border-focus: rgba(0,0,0,0.16);
+  --text:         #1a1a1f;
+  --text-muted:   #666672;
+  --text-faint:   #b0b0b8;
+  --accent:       #4a6cf7;
+  --accent-hover: #2a4ef5;
+  --accent-dim:   rgba(74,108,247,0.1);
+  --accent-glow:  rgba(74,108,247,0.15);
+  --green:        #19a56e;
+  --yellow:       #c8960a;
+  --red:          #d94040;
+  --orange:       #c87020;
+  --drag-handle:  rgba(0,0,0,0.05);
+  --drag-active:  rgba(74,108,247,0.25);
+  --scrollbar:    rgba(0,0,0,0.1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 99px; }
+
+/* ============================================================
+   TITLE BAR
+   ============================================================ */
+#titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.tb-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.tb-logo svg { color: var(--accent); }
+
+.tb-sep { width: 1px; height: 16px; background: var(--border); margin: 0 var(--space-2); }
+
+.tb-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tb-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+  border: 1px solid transparent;
+}
+.tb-tab:hover { background: var(--surface-3); color: var(--text); }
+.tb-tab.active {
+  background: var(--surface-3);
+  color: var(--text);
+  border-color: var(--border);
+}
+.tb-tab .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+}
+.tb-tab .dot.modified { background: var(--yellow); }
+.tb-tab .dot.live { background: var(--green); }
+
+.tb-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.tb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.tb-btn:hover { background: var(--surface-3); color: var(--text); }
+.tb-btn.accent { color: var(--accent); }
+
+/* ============================================================
+   LAYOUT ROOT
+   ============================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  width: 44px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2) 0;
+  gap: 2px;
+  z-index: 50;
+}
+
+.sb-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  position: relative;
+}
+.sb-icon:hover { background: var(--surface-3); color: var(--text); }
+.sb-icon.active { background: var(--accent-dim); color: var(--accent); }
+.sb-icon .badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+}
+
+.sb-spacer { flex: 1; }
+
+/* ── Split container ── */
+#split-root {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Pane ── */
+.pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 120px;
+  min-height: 80px;
+  background: var(--surface-2);
+  position: relative;
+}
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-3);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pane-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pane-title svg { color: var(--accent); }
+.pane-title .pane-label { color: var(--text); text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+.pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.p-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 11px;
+  transition: background var(--transition), color var(--transition);
+}
+.p-btn:hover { background: var(--surface-3); color: var(--text); }
+
+.pane-body {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* ── Drag handle ── */
+.drag-handle {
+  flex-shrink: 0;
+  background: var(--border);
+  position: relative;
+  z-index: 10;
+  transition: background 150ms;
+  cursor: col-resize;
+}
+.drag-handle.vertical { width: 4px; cursor: col-resize; }
+.drag-handle.horizontal { height: 4px; cursor: row-resize; }
+.drag-handle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: var(--drag-handle);
+  border-radius: 2px;
+  transition: background 150ms;
+}
+.drag-handle.vertical::after { width: 2px; height: 40px; left: 1px; }
+.drag-handle.horizontal::after { height: 2px; width: 40px; top: 1px; }
+.drag-handle:hover, .drag-handle.dragging {
+  background: var(--accent);
+}
+.drag-handle:hover::after, .drag-handle.dragging::after {
+  background: var(--accent-glow);
+}
+
+/* ============================================================
+   PANE CONTENT THEMES
+   ============================================================ */
+
+/* ── CODE EDITOR ── */
+.code-pane {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+
+.code-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 var(--space-4);
+  min-height: 20px;
+  transition: background 80ms;
+}
+.code-line:hover { background: rgba(255,255,255,0.02); }
+.code-line.active-line { background: var(--accent-dim); }
+
+.line-num {
+  min-width: 36px;
+  text-align: right;
+  color: var(--text-faint);
+  padding-right: var(--space-4);
+  font-size: var(--text-xs);
+  padding-top: 1px;
+  user-select: none;
+}
+
+.code-content { color: var(--text); white-space: pre; }
+
+/* Syntax */
+.kw   { color: #c792ea; }
+.fn   { color: #82aaff; }
+.str  { color: #c3e88d; }
+.cmt  { color: #546e7a; font-style: italic; }
+.num  { color: #f78c6c; }
+.cls  { color: #ffcb6b; }
+.prop { color: #89ddff; }
+.op   { color: #89ddff; }
+.type { color: #b2ccd6; }
+.punc { color: #89ddff; }
+
+/* Cursor blink */
+.cursor-blink {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--accent);
+  animation: blink 1.1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 1px;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── CHAT PANE ── */
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.chat-msg {
+  display: flex;
+  gap: var(--space-3);
+  max-width: 100%;
+  animation: fadeUp 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-avatar {
+  width: 24px; height: 24px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+.chat-avatar.ai  { background: var(--accent-dim); color: var(--accent); }
+.chat-avatar.usr { background: var(--surface-4); color: var(--text-muted); }
+
+.chat-bubble {
+  flex: 1;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--text);
+}
+.chat-bubble.ai-bubble { }
+.chat-bubble.usr-bubble { color: var(--text-muted); }
+
+.chat-bubble p { margin: 0 0 var(--space-2); }
+.chat-bubble p:last-child { margin: 0; }
+
+.chat-code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  margin: var(--space-2) 0;
+  overflow-x: auto;
+}
+
+.chat-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-3);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.chat-input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.chat-input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  resize: none;
+  max-height: 120px;
+  min-height: 20px;
+}
+.chat-input::placeholder { color: var(--text-faint); }
+
+.chat-send {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), transform var(--transition);
+}
+.chat-send:hover { background: var(--accent-hover); transform: scale(1.04); }
+.chat-send:active { transform: scale(0.97); }
+
+.chat-hints {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.hint-chip {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.hint-chip:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.hint-chip-sel { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ── BROWSER PANE ── */
+.browser-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.browser-nav-btns { display: flex; gap: 2px; }
+
+.bk-btn {
+  width: 24px; height: 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  transition: background var(--transition), color var(--transition);
+}
+.bk-btn:hover { background: var(--surface-3); color: var(--text); }
+
+.url-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: border-color var(--transition);
+  cursor: text;
+  user-select: none;
+}
+.url-bar:hover { border-color: var(--border-focus); }
+.url-bar .lock-icon { color: var(--green); flex-shrink: 0; }
+.url-bar .url-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.url-bar .url-host { color: var(--text); }
+
+.browser-body {
+  flex: 1;
+  overflow: hidden;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fake website preview */
+.fake-site {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-4);
+  background: #fafafa;
+  color: #1a1a1f;
+  font-family: var(--font-body);
+}
+
+[data-theme="dark"] .fake-site { background: #18181b; color: #e4e4e7; }
+
+.fake-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .fake-nav { background: #27272a; box-shadow: none; border: 1px solid rgba(255,255,255,0.06); }
+.fake-nav-logo { font-weight: 700; font-size: 15px; }
+.fake-nav a { font-size: 13px; color: #555; text-decoration: none; }
+[data-theme="dark"] .fake-nav a { color: #a1a1aa; }
+.fake-nav a:last-child {
+  margin-left: auto;
+  background: #4a6cf7;
+  color: white;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.fake-hero {
+  background: linear-gradient(135deg, #4a6cf7 0%, #7c3aed 100%);
+  border-radius: 12px;
+  padding: 2.5rem;
+  color: white;
+  margin-bottom: 1.5rem;
+}
+.fake-hero h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+.fake-hero p { opacity: 0.85; font-size: 14px; line-height: 1.6; max-width: 480px; }
+
+.fake-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.fake-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .fake-card { background: #27272a; }
+.fake-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 0.5rem; }
+.fake-card p { font-size: 12px; color: #666; line-height: 1.6; }
+[data-theme="dark"] .fake-card p { color: #a1a1aa; }
+.fake-card-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: #eff3fe;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.75rem;
+  font-size: 15px;
+}
+[data-theme="dark"] .fake-card-icon { background: rgba(108,140,248,0.12); }
+
+/* ── TERMINAL PANE ── */
+.terminal-pane {
+  background: #0a0a0c;
+  color: #cdd6f4;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+  height: 100%;
+}
+
+[data-theme="light"] .terminal-pane { background: #1e1e2e; }
+
+.term-line { display: flex; gap: var(--space-2); }
+.term-prompt { color: #a6e3a1; }
+.term-cmd { color: #cdd6f4; }
+.term-output { color: #6c7086; margin-left: var(--space-3); }
+.term-success { color: #a6e3a1; }
+.term-error { color: #f38ba8; }
+.term-info { color: #89dceb; }
+
+.term-input-line {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-1);
+}
+.term-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #cdd6f4;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  flex: 1;
+  caret-color: #89dceb;
+}
+
+/* ── STATUS BAR ── */
+#statusbar {
+  height: 22px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  font-size: var(--text-xs);
+  color: rgba(255,255,255,0.9);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.85;
+  transition: opacity var(--transition);
+  cursor: pointer;
+}
+.sb-item:hover { opacity: 1; }
+
+.sb-spacer-bar { flex: 1; }
+
+/* ── Layout config panel ── */
+#layout-config {
+  position: fixed;
+  top: 60px;
+  right: var(--space-4);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  z-index: 200;
+  width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+#layout-config.open { display: flex; }
+
+.lc-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.lc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.lc-label { font-size: var(--text-sm); color: var(--text-muted); }
+
+.lc-toggle {
+  width: 32px; height: 18px;
+  border-radius: 9px;
+  background: var(--surface-4);
+  border: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.lc-toggle.on { background: var(--accent); border-color: var(--accent); }
+.lc-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: transform var(--transition), background var(--transition);
+}
+.lc-toggle.on::after { transform: translateX(14px); background: white; }
+
+.lc-divider { height: 1px; background: var(--border); }
+
+.split-preset-btns { display: flex; gap: var(--space-2); }
+.preset-btn {
+  flex: 1;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-4);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.preset-btn:hover, .preset-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* ── Tooltip ── */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-4);
+  color: var(--text);
+  font-size: var(--text-xs);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* ── VERTICAL SPLIT (columns) ── */
+.split-h { display: flex; flex-direction: row; flex: 1; overflow: hidden; width: 100%; }
+/* ── HORIZONTAL SPLIT (rows) ── */
+.split-v { display: flex; flex-direction: column; flex: 1; overflow: hidden; height: 100%; }
+
+</style>
+</head>
+<body>
+
+<!-- ====================================================
+     LAYOUT CONFIG PANEL
+===================================================== -->
+<div id="layout-config">
+  <div class="lc-title">Layout</div>
+
+  <div class="lc-row">
+    <span class="lc-label">Pane: Browser</span>
+    <div class="lc-toggle on" id="toggle-browser" onclick="togglePane('browser')"></div>
+  </div>
+  <div class="lc-row">
+    <span class="lc-label">Pane: Editor</span>
+    <div class="lc-toggle on" id="toggle-editor" onclick="togglePane('editor')"></div>
+  </div>
+  <div class="lc-row">
+    <span class="lc-label">Pane: Chat</span>
+    <div class="lc-toggle on" id="toggle-chat" onclick="togglePane('chat')"></div>
+  </div>
+  <div class="lc-row">
+    <span class="lc-label">Pane: Terminal</span>
+    <div class="lc-toggle on" id="toggle-terminal" onclick="togglePane('terminal')"></div>
+  </div>
+
+  <div class="lc-divider"></div>
+
+  <div class="lc-title" style="font-size:0.6875rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Quick Presets</div>
+  <div class="split-preset-btns">
+    <button class="preset-btn" onclick="applyPreset(2)">2 panes</button>
+    <button class="preset-btn active" onclick="applyPreset(3)">3 panes</button>
+    <button class="preset-btn" onclick="applyPreset(4)">4 panes</button>
+  </div>
+</div>
+
+<!-- ====================================================
+     APP SHELL
+===================================================== -->
+<div id="app">
+
+  <!-- Title bar -->
+  <div id="titlebar">
+    <div class="tb-logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="DevSphere logo">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 3a9 9 0 0 1 0 18M3 12h18"/>
+        <path d="M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9"/>
+      </svg>
+      DevSphere
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-tabs">
+      <div class="tb-tab active">
+        <span class="dot modified"></span>
+        main.ts
+      </div>
+      <div class="tb-tab">
+        <span class="dot"></span>
+        api.ts
+      </div>
+      <div class="tb-tab">
+        <span class="dot live"></span>
+        localhost:5173
+      </div>
+    </div>
+    <div class="tb-actions">
+      <button class="tb-btn" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="tb-btn accent" id="layout-btn" title="Layout" onclick="toggleLayoutConfig()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/><rect x="14" y="17" width="7" height="4" rx="1"/></svg>
+      </button>
+      <button class="tb-btn" title="Settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M20 12h2M2 12h2M12 20v2M12 2v2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main workspace -->
+  <div id="workspace">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sb-icon active" data-tip="Explorer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h6l2 3h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>
+      </div>
+      <div class="sb-icon" data-tip="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="sb-icon" data-tip="Git">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M6 9v12"/></svg>
+        <div class="badge"></div>
+      </div>
+      <div class="sb-icon" data-tip="Extensions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <div class="sb-spacer"></div>
+      <div class="sb-icon" data-tip="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 20a8 8 0 1 0-16 0"/></svg>
+      </div>
+    </div>
+
+    <!-- Split Root -->
+    <div id="split-root" class="split-h">
+      <!-- Will be dynamically built by JS -->
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <div class="sb-item">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      main
+    </div>
+    <div class="sb-item">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      0 errors · 1 warning
+    </div>
+    <div class="sb-spacer-bar"></div>
+    <div class="sb-item">TypeScript</div>
+    <div class="sb-item">UTF-8</div>
+    <div class="sb-item">Ln 14, Col 28</div>
+    <div class="sb-item">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      AI active
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   DEVSPHERE — Split Workspace Engine
+   ============================================================ */
+
+// ── Pane state ──
+let paneState = {
+  browser:  { visible: true },
+  editor:   { visible: true },
+  chat:     { visible: true },
+  terminal: { visible: true },
+};
+
+// ── Pane definitions ──
+const PANES = {
+  browser:  buildBrowserPane,
+  editor:   buildEditorPane,
+  chat:     buildChatPane,
+  terminal: buildTerminalPane,
+};
+
+// ── Active preset ──
+let currentPreset = 3;
+
+// ── Build split root ──
+function buildLayout() {
+  const root = document.getElementById('split-root');
+  root.innerHTML = '';
+  root.className = 'split-h';
+
+  const visiblePanes = Object.entries(paneState)
+    .filter(([k, v]) => v.visible)
+    .map(([k]) => k);
+
+  if (visiblePanes.length === 0) {
+    root.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:var(--text-sm)">No panes visible. Toggle panes in layout config.</div>';
+    return;
+  }
+
+  // Special: terminal always stacked below if present with others
+  const mainPanes = visiblePanes.filter(p => p !== 'terminal');
+  const hasTerminal = visiblePanes.includes('terminal');
+
+  if (hasTerminal && mainPanes.length > 0) {
+    // Outer: vertical split (top = main panes, bottom = terminal)
+    const outerV = document.createElement('div');
+    outerV.className = 'split-v';
+    outerV.style.flex = '1';
+
+    // Top: horizontal panes
+    const topH = document.createElement('div');
+    topH.className = 'split-h';
+    topH.style.flex = '1';
+    appendPanesHorizontal(topH, mainPanes);
+    outerV.appendChild(topH);
+
+    // Drag handle (horizontal)
+    const dh = makeHandle('horizontal');
+    outerV.appendChild(dh);
+
+    // Bottom: terminal
+    const termWrap = document.createElement('div');
+    termWrap.className = 'pane';
+    termWrap.id = 'pane-terminal';
+    termWrap.style.height = '180px';
+    termWrap.style.minHeight = '80px';
+    termWrap.style.flexShrink = '0';
+    PANES.terminal(termWrap);
+    outerV.appendChild(termWrap);
+
+    // Vertical drag
+    setupVerticalDrag(dh, topH, termWrap);
+
+    root.appendChild(outerV);
+  } else {
+    appendPanesHorizontal(root, visiblePanes);
+  }
+
+  initSidebarActiveState();
+}
+
+function appendPanesHorizontal(container, paneKeys) {
+  const percentEach = 100 / paneKeys.length;
+  paneKeys.forEach((key, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'pane';
+    wrap.id = 'pane-' + key;
+    wrap.style.flex = '1';
+    wrap.style.minWidth = '100px';
+    PANES[key](wrap);
+    container.appendChild(wrap);
+
+    if (i < paneKeys.length - 1) {
+      const dh = makeHandle('vertical');
+      container.appendChild(dh);
+      setupHorizontalDrag(dh, wrap, null, container, i, paneKeys);
+    }
+  });
+}
+
+function makeHandle(type) {
+  const dh = document.createElement('div');
+  dh.className = 'drag-handle ' + type;
+  return dh;
+}
+
+// ── Horizontal (column) drag ──
+function setupHorizontalDrag(handle, leftPane, rightPane, container, leftIdx, paneKeys) {
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const startX = e.clientX;
+    const left = handle.previousElementSibling;
+    const right = handle.nextElementSibling;
+    const leftStart = left.getBoundingClientRect().width;
+    const rightStart = right.getBoundingClientRect().width;
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX;
+      const newLeft = Math.max(100, leftStart + dx);
+      const newRight = Math.max(100, rightStart - dx);
+      left.style.flex = 'none';
+      right.style.flex = 'none';
+      left.style.width = newLeft + 'px';
+      right.style.width = newRight + 'px';
+    }
+    function onUp() {
+      handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+}
+
+// ── Vertical (row) drag for terminal ──
+function setupVerticalDrag(handle, topElem, bottomElem) {
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    const startY = e.clientY;
+    const topStart = topElem.getBoundingClientRect().height;
+    const bottomStart = bottomElem.getBoundingClientRect().height;
+
+    function onMove(ev) {
+      const dy = ev.clientY - startY;
+      const newTop = Math.max(80, topStart + dy);
+      const newBottom = Math.max(60, bottomStart - dy);
+      topElem.style.flex = 'none';
+      topElem.style.height = newTop + 'px';
+      bottomElem.style.height = newBottom + 'px';
+    }
+    function onUp() {
+      handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+}
+
+/* ============================================================
+   PANE BUILDERS
+   ============================================================ */
+
+function buildEditorPane(wrap) {
+  wrap.innerHTML = `
+  <div class="pane-header">
+    <div class="pane-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-2 2.5H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-14a2 2 0 0 0-2-2h-4l-2-2.5z"/></svg>
+      <span class="pane-label">main.ts</span>
+    </div>
+    <div class="pane-actions">
+      <button class="p-btn" title="Split editor">⊞</button>
+      <button class="p-btn" title="More">⋯</button>
+    </div>
+  </div>
+  <div class="pane-body code-pane" id="editor-body" style="padding: var(--space-2) 0;">
+    ${buildCodeLines()}
+  </div>`;
+}
+
+function buildCodeLines() {
+  const lines = [
+    [`<span class="cmt">// DevSphere workspace — main.ts</span>`],
+    [`<span class="kw">import</span> <span class="punc">{</span> <span class="cls">createApp</span> <span class="punc">}</span> <span class="kw">from</span> <span class="str">'vue'</span>`],
+    [`<span class="kw">import</span> <span class="cls">App</span> <span class="kw">from</span> <span class="str">'./App.vue'</span>`],
+    [`<span class="kw">import</span> <span class="cls">Router</span> <span class="kw">from</span> <span class="str">'./router'</span>`],
+    [``],
+    [`<span class="kw">interface</span> <span class="cls">WorkspaceConfig</span> <span class="punc">{</span>`],
+    [`&nbsp;&nbsp;<span class="prop">theme</span><span class="punc">:</span> <span class="type">'dark'</span> <span class="op">|</span> <span class="type">'light'</span>`],
+    [`&nbsp;&nbsp;<span class="prop">splits</span><span class="punc">:</span> <span class="type">number</span>`],
+    [`&nbsp;&nbsp;<span class="prop">panes</span><span class="punc">:</span> <span class="cls">PaneConfig</span><span class="punc">[]</span>`],
+    [`<span class="punc">}</span>`],
+    [``],
+    [`<span class="kw">const</span> <span class="prop">config</span><span class="punc">:</span> <span class="cls">WorkspaceConfig</span> <span class="op">=</span> <span class="punc">{</span>`],
+    [`&nbsp;&nbsp;<span class="prop">theme</span><span class="punc">:</span> <span class="str">'dark'</span><span class="punc">,</span>`],
+    [`&nbsp;&nbsp;<span class="prop">splits</span><span class="punc">:</span> <span class="num">3</span><span class="punc">,</span><span class="cursor-blink"></span>`],
+    [`&nbsp;&nbsp;<span class="prop">panes</span><span class="punc">:</span> <span class="punc">[</span><span class="str">'browser'</span><span class="punc">,</span> <span class="str">'editor'</span><span class="punc">,</span> <span class="str">'chat'</span><span class="punc">]</span>`],
+    [`<span class="punc">}</span>`],
+    [``],
+    [`<span class="kw">export default</span> <span class="fn">defineWorkspace</span><span class="punc">(</span><span class="prop">config</span><span class="punc">)</span>`],
+    [``],
+    [`<span class="cmt">// Initialise Vue app</span>`],
+    [`<span class="kw">const</span> <span class="prop">app</span> <span class="op">=</span> <span class="fn">createApp</span><span class="punc">(</span><span class="cls">App</span><span class="punc">)</span>`],
+    [`<span class="prop">app</span><span class="punc">.</span><span class="fn">use</span><span class="punc">(</span><span class="cls">Router</span><span class="punc">)</span>`],
+    [`<span class="prop">app</span><span class="punc">.</span><span class="fn">mount</span><span class="punc">(</span><span class="str">'#app'</span><span class="punc">)</span>`],
+  ];
+
+  return lines.map((parts, i) => {
+    const isActive = i === 13;
+    return `<div class="code-line${isActive ? ' active-line' : ''}">
+      <span class="line-num">${i + 1}</span>
+      <span class="code-content">${parts[0]}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildBrowserPane(wrap) {
+  wrap.innerHTML = `
+  <div class="pane-header">
+    <div class="pane-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span class="pane-label">Browser</span>
+    </div>
+    <div class="pane-actions">
+      <button class="p-btn" title="Refresh">↻</button>
+      <button class="p-btn" title="DevTools">⌥</button>
+    </div>
+  </div>
+  <div class="pane-body browser-pane">
+    <div class="browser-bar">
+      <div class="browser-nav-btns">
+        <button class="bk-btn">←</button>
+        <button class="bk-btn">→</button>
+        <button class="bk-btn">↻</button>
+      </div>
+      <div class="url-bar">
+        <svg class="lock-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span class="url-text"><span class="url-host">localhost</span>:5173</span>
+      </div>
+    </div>
+    <div class="browser-body">
+      <div class="fake-site">
+        <div class="fake-nav">
+          <span class="fake-nav-logo">⬡ DevSphere</span>
+          <a href="#">Docs</a>
+          <a href="#">API</a>
+          <a href="#">Deploy</a>
+        </div>
+        <div class="fake-hero">
+          <h1>Build faster. Ship smarter.</h1>
+          <p>DevSphere gives you a multi-pane workspace with AI-powered code generation, live browser preview, and a fully integrated terminal — all in one window.</p>
+        </div>
+        <div class="fake-cards">
+          <div class="fake-card">
+            <div class="fake-card-icon">⚡</div>
+            <h3>Hot Reload</h3>
+            <p>Instant preview on every save. Zero configuration required.</p>
+          </div>
+          <div class="fake-card">
+            <div class="fake-card-icon">🤖</div>
+            <h3>AI Assist</h3>
+            <p>Context-aware completions powered by your codebase graph.</p>
+          </div>
+          <div class="fake-card">
+            <div class="fake-card-icon">📦</div>
+            <h3>Zero Config</h3>
+            <p>Works with Vite, Next.js, Astro, and SvelteKit out of the box.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildChatPane(wrap) {
+  wrap.innerHTML = `
+  <div class="pane-header">
+    <div class="pane-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="pane-label">AI Chat</span>
+    </div>
+    <div class="pane-actions">
+      <button class="p-btn" title="New thread">+</button>
+      <button class="p-btn" title="History">≡</button>
+    </div>
+  </div>
+  <div class="pane-body">
+    <div class="chat-pane">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg">
+          <div class="chat-avatar ai">AI</div>
+          <div class="chat-bubble ai-bubble">
+            <p>Hi! I'm your AI pair programmer. I have full context of your current workspace — <strong>main.ts</strong> is open and I can see 23 lines of TypeScript.</p>
+            <p>What would you like to work on?</p>
+          </div>
+        </div>
+        <div class="chat-msg">
+          <div class="chat-avatar usr">U</div>
+          <div class="chat-bubble usr-bubble">
+            <p>Can you add a <code style="background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">useWorkspace</code> composable that reads the config?</p>
+          </div>
+        </div>
+        <div class="chat-msg">
+          <div class="chat-avatar ai">AI</div>
+          <div class="chat-bubble ai-bubble">
+            <p>Sure! Here's a <code style="background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">useWorkspace</code> composable that reads and reactively exposes your config:</p>
+            <div class="chat-code-block"><span class="kw">export function</span> <span class="fn">useWorkspace</span><span class="punc">() {</span>
+  <span class="kw">const</span> <span class="prop">config</span> <span class="op">=</span> <span class="fn">ref</span><span class="punc">&lt;</span><span class="cls">WorkspaceConfig</span><span class="punc">&gt;(</span>
+    <span class="fn">loadConfig</span><span class="punc">()</span>
+  <span class="punc">)</span>
+  <span class="kw">const</span> <span class="prop">isDark</span> <span class="op">=</span> <span class="fn">computed</span><span class="punc">(() =&gt;</span>
+    <span class="prop">config</span><span class="punc">.</span><span class="prop">value</span><span class="punc">.</span><span class="prop">theme</span> <span class="op">===</span> <span class="str">'dark'</span>
+  <span class="punc">)</span>
+  <span class="kw">return</span> <span class="punc">{</span> <span class="prop">config</span><span class="punc">,</span> <span class="prop">isDark</span> <span class="punc">}</span>
+<span class="punc">}</span></div>
+            <p>I'll apply this to your file now — want me to also add a <code style="background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">patchConfig</code> mutation?</p>
+          </div>
+        </div>
+      </div>
+      <div class="chat-footer">
+        <div class="chat-hints">
+          <div class="hint-chip" onclick="sendHint(this, 'Add patchConfig mutation')">Add patchConfig</div>
+          <div class="hint-chip" onclick="sendHint(this, 'Write unit tests')">Write tests</div>
+          <div class="hint-chip" onclick="sendHint(this, 'Explain this code')">Explain</div>
+          <div class="hint-chip" onclick="sendHint(this, 'Refactor for performance')">Refactor</div>
+        </div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chat-input" placeholder="Ask anything about your codebase…" rows="1"
+            onkeydown="handleChatKey(event)"></textarea>
+          <button class="chat-send" onclick="sendChat()" title="Send">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Auto-resize textarea
+  const ta = wrap.querySelector('#chat-input');
+  if (ta) {
+    ta.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
+}
+
+function buildTerminalPane(wrap) {
+  wrap.innerHTML = `
+  <div class="pane-header">
+    <div class="pane-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      <span class="pane-label">Terminal</span>
+    </div>
+    <div class="pane-actions">
+      <button class="p-btn" title="New terminal">+</button>
+      <button class="p-btn" title="Clear">⌫</button>
+    </div>
+  </div>
+  <div class="pane-body">
+    <div class="terminal-pane" id="terminal-body">
+      <div class="term-line"><span class="term-prompt">~/project</span><span class="term-cmd"> $ npm run dev</span></div>
+      <div class="term-line"><span class="term-output term-success">  VITE v5.4.2  ready in 312ms</span></div>
+      <div class="term-line"><span class="term-output"></span></div>
+      <div class="term-line"><span class="term-output term-info">  ➜  Local:   http://localhost:5173/</span></div>
+      <div class="term-line"><span class="term-output term-info">  ➜  Network: http://192.168.1.10:5173/</span></div>
+      <div class="term-line"><span class="term-output"></span></div>
+      <div class="term-line"><span class="term-prompt">~/project</span><span class="term-cmd"> $ tsc --noEmit --watch</span></div>
+      <div class="term-line"><span class="term-output">Starting compilation in watch mode...</span></div>
+      <div class="term-line"><span class="term-output term-success">Found 0 errors.</span></div>
+      <div class="term-input-line">
+        <span class="term-prompt">~/project $</span>
+        <input class="term-input" id="term-input" placeholder="" autocomplete="off"
+          onkeydown="handleTermKey(event)" />
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   CHAT LOGIC
+   ============================================================ */
+const aiReplies = [
+  "I've applied the change to <strong>main.ts</strong>. The composable is now exported and includes full TypeScript types.",
+  "Sure! I'll add that now. Should I also update the corresponding test file in <code style='background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)'>__tests__/main.spec.ts</code>?",
+  "Great question. The key pattern here is reactivity — by wrapping in <code style='background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)'>ref()</code> we ensure components re-render when config changes.",
+  "I found 2 places to optimise: the config loader can be memoised, and the pane array can use a <code style='background:var(--surface-4);padding:1px 5px;border-radius:3px;font-family:var(--font-mono)'>WeakMap</code> for O(1) lookup.",
+];
+
+function appendChatMsg(role, html) {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  const isAI = role === 'ai';
+  div.innerHTML = `
+    <div class="chat-avatar ${isAI ? 'ai' : 'usr'}">${isAI ? 'AI' : 'U'}</div>
+    <div class="chat-bubble ${isAI ? 'ai-bubble' : 'usr-bubble'}"><p>${html}</p></div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  if (!inp || !inp.value.trim()) return;
+  const val = inp.value.trim();
+  inp.value = '';
+  inp.style.height = 'auto';
+  appendChatMsg('user', val);
+  setTimeout(() => {
+    const reply = aiReplies[Math.floor(Math.random() * aiReplies.length)];
+    appendChatMsg('ai', reply);
+  }, 600 + Math.random() * 400);
+}
+
+function sendHint(el, text) {
+  document.querySelectorAll('.hint-chip').forEach(c => c.classList.remove('hint-chip-sel'));
+  el.classList.add('hint-chip-sel');
+  appendChatMsg('user', text);
+  setTimeout(() => {
+    const reply = aiReplies[Math.floor(Math.random() * aiReplies.length)];
+    appendChatMsg('ai', reply);
+    el.classList.remove('hint-chip-sel');
+  }, 700);
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+/* ============================================================
+   TERMINAL LOGIC
+   ============================================================ */
+const termHistory = [];
+let histIdx = -1;
+
+function handleTermKey(e) {
+  const inp = document.getElementById('term-input');
+  if (!inp) return;
+  if (e.key === 'Enter') {
+    const cmd = inp.value.trim();
+    if (!cmd) return;
+    termHistory.unshift(cmd);
+    histIdx = -1;
+    appendTermLine(cmd);
+    inp.value = '';
+  } else if (e.key === 'ArrowUp') {
+    histIdx = Math.min(histIdx + 1, termHistory.length - 1);
+    if (termHistory[histIdx]) inp.value = termHistory[histIdx];
+    e.preventDefault();
+  } else if (e.key === 'ArrowDown') {
+    histIdx = Math.max(histIdx - 1, -1);
+    inp.value = histIdx >= 0 ? termHistory[histIdx] : '';
+    e.preventDefault();
+  }
+}
+
+function appendTermLine(cmd) {
+  const body = document.getElementById('terminal-body');
+  if (!body) return;
+  const inputLine = body.querySelector('.term-input-line');
+
+  const cmdLine = document.createElement('div');
+  cmdLine.className = 'term-line';
+  cmdLine.innerHTML = `<span class="term-prompt">~/project</span><span class="term-cmd"> $ ${cmd}</span>`;
+  body.insertBefore(cmdLine, inputLine);
+
+  const responses = {
+    'ls': '<span class="term-output">assets/  node_modules/  src/  index.html  package.json  tsconfig.json  vite.config.ts</span>',
+    'pwd': '<span class="term-output">/Users/dev/project</span>',
+    'clear': null,
+    'git status': '<span class="term-output term-success">On branch main. 2 files modified: src/main.ts, src/router.ts</span>',
+    'git log --oneline': '<span class="term-output">a3f2c1d feat: add workspace config<br>&nbsp;&nbsp;&nbsp;&nbsp;b8e9123 fix: pane resize on mobile<br>&nbsp;&nbsp;&nbsp;&nbsp;c1d4567 chore: update deps</span>',
+    'npm run build': '<span class="term-output term-success">✓ built in 1.42s</span>',
+    'date': `<span class="term-output">${new Date().toUTCString()}</span>`,
+    'help': '<span class="term-output term-info">Try: ls, pwd, git status, git log --oneline, npm run build, date, clear</span>',
+  };
+
+  const resp = responses[cmd.toLowerCase()] ?? `<span class="term-output term-error">command not found: ${cmd} (try 'help')</span>`;
+
+  if (cmd.toLowerCase() === 'clear') {
+    Array.from(body.children).forEach(c => { if (!c.classList.contains('term-input-line')) c.remove(); });
+  } else {
+    const out = document.createElement('div');
+    out.className = 'term-line';
+    out.innerHTML = resp;
+    body.insertBefore(out, inputLine);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+/* ============================================================
+   LAYOUT CONFIG
+   ============================================================ */
+function toggleLayoutConfig() {
+  document.getElementById('layout-config').classList.toggle('open');
+}
+
+document.addEventListener('click', (e) => {
+  const cfg = document.getElementById('layout-config');
+  const btn = document.getElementById('layout-btn');
+  if (cfg.classList.contains('open') && !cfg.contains(e.target) && !btn.contains(e.target)) {
+    cfg.classList.remove('open');
+  }
+});
+
+function togglePane(key) {
+  paneState[key].visible = !paneState[key].visible;
+  const toggle = document.getElementById('toggle-' + key);
+  if (toggle) toggle.classList.toggle('on', paneState[key].visible);
+  buildLayout();
+}
+
+function applyPreset(n) {
+  document.querySelectorAll('.preset-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === n - 2);
+  });
+  currentPreset = n;
+  const allKeys = ['browser', 'editor', 'chat', 'terminal'];
+  const show = allKeys.slice(0, n);
+  Object.keys(paneState).forEach(k => {
+    paneState[k].visible = show.includes(k);
+    const t = document.getElementById('toggle-' + k);
+    if (t) t.classList.toggle('on', paneState[k].visible);
+  });
+  buildLayout();
+}
+
+/* ============================================================
+   THEME TOGGLE
+   ============================================================ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+}
+
+/* ============================================================
+   SIDEBAR ACTIVE
+   ============================================================ */
+function initSidebarActiveState() {
+  document.querySelectorAll('.sb-icon').forEach(el => {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('.sb-icon').forEach(e => e.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildLayout();
+</script>
+</body>
+</html>
