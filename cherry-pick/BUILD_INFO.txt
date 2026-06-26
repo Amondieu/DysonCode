@@ -1,0 +1,7 @@
+Build erfolgreich  
+restored-base branch  
+Build time: 26.06.2026 19:08:21,59  
+  
+Dies ist ein Cherry-Pick-Build vom restored-base Branch.  
+Basis: init-source-2026-06-26 (b31db49)  
++ selektierte UI-Fixes aus spaeteren Commits 
