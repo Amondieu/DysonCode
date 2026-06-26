@@ -117,6 +117,33 @@ body {
   --jcode-font-mono:     'JetBrains Mono', 'Fira Code', monospace;
 }
 
+/* ── LAYOUT STABILITY PATCH (flexbox min-height fix) ────────────────────────── */
+/* Flex-children have min-height: auto by default, causing unbounded growth.    */
+/* min-height: 0 on the chat wrapper forces proper overflow.                     */
+/* Target: <div class="flex-1 min-h-0 chat-panel-root"> in App.tsx + ChatPanel  */
+@layer utilities {
+  .chat-panel-root {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .chat-scanlines {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .chat-scrollbar {
+    flex: 1 1 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+  }
+}
 /* ── JcodePanel animations ──────────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -125,4 +152,20 @@ body {
 @keyframes pulse {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
   40% { transform: scale(1); opacity: 1; }
+}
+
+/* === SIDEBAR / EXPLORER FIX === */
+[class*="sidebar"] .flex-1,
+.file-tree {
+  min-height: 0;
+}
+
+/* === SCROLL LAYOUT FIX === */
+/* height: 0 + flex: 1 1 0 forces the scroll container to use Flex height only */
+.chat-scrollbar {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }

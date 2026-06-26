@@ -130,7 +130,8 @@ export function ChatPanel() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        flex: 1,
+        minHeight: 0,
         overflow: 'hidden',
         position: 'relative',
         background: 'var(--jcode-bg, #0b0c0e)',
@@ -217,9 +218,10 @@ export function ChatPanel() {
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>
         <MessageList
           messages={messages}
+          busy={busy}
           onToggleCollapse={handleToggleCollapse}
         />
       </div>
@@ -232,6 +234,7 @@ export function ChatPanel() {
           background: 'var(--surface, #0f1012)',
           position: 'relative',
           zIndex: 1,
+          flexShrink: 0,
         }}
       >
         {/* Context pills row */}

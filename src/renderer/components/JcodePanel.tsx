@@ -244,8 +244,11 @@ function JcodePanelInner() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-scroll to bottom whenever messages update
+  // Use parentElement scrollTop instead of scrollIntoView to avoid scrolling
+  // the Electron viewport (scrollIntoView propagates up the DOM tree).
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = bottomRef.current?.parentElement;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
   const addMessage = useCallback((msg: Omit<Message, 'id' | 'timestamp'>) => {

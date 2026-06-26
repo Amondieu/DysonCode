@@ -1,7 +1,49 @@
+# Node
 node_modules/
+npm-debug.log*
+
+# Build output
 dist/
-release/
-*.db
-*.db-journal
-.env
-.vite/
+release/*/resources/app/dist/
+release/win-unpacked/
+release/builder-debug.yml
+release/*.exe
+release/*.exe.blockmap
+asar-extracted/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Autoclaw logs
+.autoclaw/
+
+# Electron cache
+appdata/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temp / scratch files
+temp_*
+*.bak
+*.log
+build.log
+
+# Asar backups
+asar-backup/
+*.asar.bak
+*.asar.disabled
+
+# Rust build artifacts
+kore-exec/target/
+
+# Large binary assets
+resources/app.asar

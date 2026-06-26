@@ -213,7 +213,7 @@ export default function FlowCanvas({
   }, [graphEdges, graphNodes]);
 
   useEffect(() => {
-    setEdges(graphEdges.map(mapGraphEdge));
+    setEdges(graphEdges.map((e) => mapGraphEdge(e)));
   }, [graphEdges]);
 
   useEffect(() => {

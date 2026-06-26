@@ -141,7 +141,7 @@ export default function TerminalPanel() {
       </div>
 
       {/* Terminal Output */}
-      <div ref={termRef} className="flex-1" />
+      <div ref={termRef} className="flex-1" style={{background:'#0d1117'}} />
     </div>
   );
 }

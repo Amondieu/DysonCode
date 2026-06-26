@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;margin:0;overflow:hidden">
+<head>
+<meta charset="UTF-8">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{height:100vh;background:#0e0e10;font-family:system-ui,sans-serif;overflow:hidden}
+#toolbar{height:28px;background:#111113;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;padding:0 8px;gap:8px;flex-shrink:0}
+#file-label{font-size:11px;color:#888890;font-family:monospace}
+#lang-label{font-size:9px;color:#555560;text-transform:uppercase;margin-left:auto}
+#unsaved{font-size:10px;color:#f5a623;display:none}
+#container{flex:1;overflow:hidden}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <span id="file-label">no file open</span>
+  <span id="unsaved">● unsaved</span>
+  <span id="lang-label"></span>
+</div>
+<div id="container"></div>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+<script>
+let editor = null;
+let currentPath = '';
+let dirty = false;
+
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+  editor = monaco.editor.create(document.getElementById('container'), {
+    value: '',
+    language: 'typescript',
+    theme: 'vs-dark',
+    fontSize: 13,
+    lineHeight: 22,
+    fontFamily: "'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace",
+    minimap: { enabled: true, scale: 1, showSlider: 'mouseover' },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    tabSize: 2,
+    renderWhitespace: 'selection',
+    bracketPairColorization: { enabled: true },
+    automaticLayout: true,
+  });
+
+  // Listen for file open from main process
+  window.addEventListener('message', function (event) {
+    const data = event.data;
+    if (data.type === 'open') {
+      currentPath = data.path || '';
+      document.getElementById('file-label').textContent = currentPath || 'no file open';
+      const ext = (currentPath || '').split('.').pop();
+      const langMap = { ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript', py: 'python', rs: 'rust', json: 'json', md: 'markdown', css: 'css', html: 'html', yaml: 'yaml', yml: 'yaml', toml: 'toml', sh: 'shell', bat: 'shell', ps1: 'powershell', sql: 'sql' };
+      const lang = langMap[ext] || 'plaintext';
+      document.getElementById('lang-label').textContent = lang;
+      monaco.editor.setModelLanguage(editor.getModel(), lang);
+      editor.setValue(data.content || '');
+      dirty = false;
+      document.getElementById('unsaved').style.display = 'none';
+    }
+  });
+
+  // Track dirty state
+  editor.onDidChangeModelContent(function () {
+    if (!dirty) {
+      dirty = true;
+      document.getElementById('unsaved').style.display = 'inline';
+    }
+  });
+
+  // Ctrl+S → save
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, function () {
+    if (!currentPath) return;
+    const content = editor.getValue();
+    parent.postMessage({ type: 'save', path: currentPath, content: content }, '*');
+    dirty = false;
+    document.getElementById('unsaved').style.display = 'none';
+  });
+});
+</script>
+</body>
+</html>

@@ -60,7 +60,7 @@ function ChatWorkspace({ activePanel }: { activePanel: string }) {
   };
 
   return (
-    <div ref={containerRef} className="h-full flex flex-col bg-dyson-bg">
+    <div ref={containerRef} className="flex-1 flex flex-col bg-dyson-bg min-h-0">
       {/* Center panel toggle bar */}
       <div className="flex items-center h-6 bg-dyson-panel border-b border-dyson-border px-2 gap-1 flex-shrink-0">
         {(['chat', 'browser'] as const).map((mode) => (
@@ -79,7 +79,7 @@ function ChatWorkspace({ activePanel }: { activePanel: string }) {
       </div>
       {/* Center panel content */}
       {centerPanelContent === 'chat' ? (
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 chat-panel-root">
           <ChatPanel />
         </div>
       ) : (
@@ -127,7 +127,7 @@ export default function App() {
   useMissionControlBridge();
 
   return (
-    <div className="h-screen flex flex-col bg-dyson-bg overflow-hidden">
+    <div className="flex flex-col bg-dyson-bg" style={{ height: '100vh', maxHeight: '100vh', overflow: 'hidden' }}>
       <div className="flex-1 flex min-h-0">
         {sidebarOpen && <Sidebar />}
         <div className="flex-1 flex flex-col min-w-0">
