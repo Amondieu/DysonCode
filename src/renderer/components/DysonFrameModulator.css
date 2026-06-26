@@ -44,7 +44,7 @@
   align-items: center;
   gap: 2px;
   padding: 5px 9px;
-  background: var(--surface-3, #191b1f);
+  background: var(--surface-3, #191b1f) !important;
   border: 1px solid var(--border, rgba(255,255,255,0.06));
   border-radius: 6px;
   cursor: pointer;
@@ -56,6 +56,8 @@
   min-width: 56px;
   font-family: inherit;
   color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .dyson-frame-btn:focus-visible {
@@ -64,7 +66,7 @@
 }
 
 .dyson-frame-btn:hover:not([aria-pressed="true"]) {
-  background: #24242a;
+  background: #24242a !important;
   border-color: rgba(255,255,255,0.12);
 }
 
@@ -91,7 +93,7 @@
 
 /* Active states — each frame its own color */
 .dyson-frame-btn[aria-pressed="true"][data-frame="sigma"] {
-  background: rgba(79,152,163,0.12);
+  background: rgba(79,152,163,0.12) !important;
   border-color: var(--sigma-color, #4f98a3);
   box-shadow: 0 0 10px rgba(79,152,163,0.28), inset 0 0 6px rgba(79,152,163,0.08);
 }
@@ -101,7 +103,7 @@
 }
 
 .dyson-frame-btn[aria-pressed="true"][data-frame="ideva"] {
-  background: rgba(232,175,52,0.12);
+  background: rgba(232,175,52,0.12) !important;
   border-color: var(--ideva-color, #e8af34);
   box-shadow: 0 0 10px rgba(232,175,52,0.28), inset 0 0 6px rgba(232,175,52,0.08);
 }
@@ -111,7 +113,7 @@
 }
 
 .dyson-frame-btn[aria-pressed="true"][data-frame="phworge"] {
-  background: rgba(218,113,1,0.12);
+  background: rgba(218,113,1,0.12) !important;
   border-color: var(--phworge-color, #da7101);
   box-shadow: 0 0 10px rgba(218,113,1,0.28), inset 0 0 6px rgba(218,113,1,0.08);
 }
@@ -121,7 +123,7 @@
 }
 
 .dyson-frame-btn[aria-pressed="true"][data-frame="omega"] {
-  background: rgba(168,111,223,0.12);
+  background: rgba(168,111,223,0.12) !important;
   border-color: var(--omega-color, #a86fdf);
   box-shadow: 0 0 10px rgba(168,111,223,0.28), inset 0 0 6px rgba(168,111,223,0.08);
 }
@@ -131,7 +133,7 @@
 }
 
 .dyson-frame-btn[aria-pressed="true"][data-frame="dyson"] {
-  background: rgba(109,170,69,0.12);
+  background: rgba(109,170,69,0.12) !important;
   border-color: var(--dyson-color, #6daa45);
   box-shadow: 0 0 10px rgba(109,170,69,0.28), inset 0 0 6px rgba(109,170,69,0.08);
 }
@@ -338,3 +340,13 @@
   animation: dyson-spin 0.7s linear infinite;
   vertical-align: middle;
 }
+
+/* === FORCED DARK OVERRIDE === */
+.dyson-modulator-wrapper, .dyson-frame-modulator, .dyson-frame-btn { background: transparent !important; background-color: transparent !important; }
+.dyson-frame-btn { appearance: none; -webkit-appearance: none; border: 1px solid rgba(255,255,255,0.1) !important; color: inherit !important; }
+.dyson-modulator-wrapper { overflow: hidden; max-width: 100%; }
+
+/* === FORCED DARK OVERRIDE === */
+.dyson-modulator-wrapper, .dyson-frame-modulator, .dyson-frame-btn { background: transparent !important; background-color: transparent !important; }
+.dyson-frame-btn { appearance: none; -webkit-appearance: none; border: 1px solid rgba(255,255,255,0.1) !important; color: inherit !important; }
+.dyson-modulator-wrapper { overflow: hidden; max-width: 100%; }

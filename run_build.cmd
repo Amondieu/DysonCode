@@ -1,0 +1,9 @@
+@echo off
+cd /d "C:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode"
+echo [1/3] Compiling main process...
+call npx tsc -p tsconfig.main.json
+echo [2/3] Building renderer...
+call npx vite build
+echo [3/3] Copying main index.js...
+copy /Y src\main\index.js dist\main\index.js
+echo === BUILD COMPLETE ===

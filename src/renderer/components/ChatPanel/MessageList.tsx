@@ -451,17 +451,21 @@ export function MessageList({ messages, busy, onToggleCollapse }: Props) {
 
   // Auto-scroll (B6: respects manual scroll override)
   useEffect(() => {
-    if (!busy) return;
+    if (!busy && !messages.length) return;
+    // Use scrollTop = scrollHeight for reliable scroll-to-bottom
+    const scroll = () => {
+      if (userScrolled.current) return;
+      const el = containerRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+    };
     if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => {
-      if (!userScrolled.current) {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 80);
+    scrollTimerRef.current = setTimeout(scroll, 80);
     return () => {
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     };
-  }, [messages.length, busy]);
+    // Also react to content growth of the last message during streaming
+  }, [messages.length, messages[messages.length - 1]?.content?.length, busy]);
 
   return (
     <div
@@ -471,8 +475,9 @@ export function MessageList({ messages, busy, onToggleCollapse }: Props) {
       style={{
         flex: 1,
         minHeight: 0,
-        height: '100%',
         overflowY: 'auto',
+        overflowX: 'hidden',
+        overscrollBehavior: 'contain',
         padding: '16px 20px',
         position: 'relative',
       }}

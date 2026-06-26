@@ -69,7 +69,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div ref={sidebarRef} className="flex h-full flex-shrink-0">
+    <div ref={sidebarRef} className="flex h-full flex-shrink-0 min-h-0 overflow-hidden">
       {/* ── ICON STRIP ── */}
       <div className="w-9 bg-[#0e0e10] border-r border-[rgba(255,255,255,0.06)] flex flex-col items-center py-2 gap-0.5 flex-shrink-0">
         {ICONS.map((item) => (
@@ -116,13 +116,13 @@ export default function Sidebar() {
           </div>
 
           {/* Module Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {sidebarModule === 'explorer' && (
               <div className="flex flex-col h-full">
                 <div className="px-2 py-1.5">
                   <RepoPicker />
                 </div>
-                <div className="flex-1 overflow-hidden px-1">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-1">
                   <FileTree />
                 </div>
                 <SessionList />

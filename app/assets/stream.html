@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;margin:0;overflow:hidden">
+<head>
+<meta charset="UTF-8">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{height:100vh;background:#0e0e10;color:#c8c8d0;font-family:'Fira Code','Cascadia Code',monospace;font-size:11px;line-height:1.5;overflow:hidden;display:flex;flex-direction:column}
+#header{background:#111113;border-bottom:1px solid rgba(255,255,255,0.05);padding:6px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#status{font-size:10px;padding:2px 6px;border-radius:10px;border:1px solid}
+#status.idle{color:#888890;border-color:rgba(136,136,144,0.3);background:rgba(136,136,144,0.05)}
+#status.running{color:#3dd68c;border-color:rgba(61,214,140,0.3);background:rgba(61,214,140,0.08)}
+#status.error{color:#ff6b6b;border-color:rgba(255,107,107,0.3);background:rgba(255,107,107,0.08)}
+#phase{font-size:10px;color:#888890}
+#log{flex:1;overflow-y:auto;padding:8px 10px}
+.entry{display:flex;gap:6px;padding:2px 0;align-items:baseline}
+.entry .t{color:#555560;font-size:9px;min-width:60px;flex-shrink:0}
+.entry .c{flex:1}
+.entry.system .c{color:#888890}
+.entry.architect .c{color:#6c8cf8}
+.entry.builder .c{color:#3dd68c}
+.entry.reviewer .c{color:#4fc4cf}
+.entry.tool .c{color:#f5a623}
+.entry.error .c{color:#ff6b6b}
+.dot{width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.dot.system{background:#888890}.dot.architect{background:#6c8cf8}.dot.builder{background:#3dd68c}.dot.reviewer{background:#4fc4cf}.dot.tool{background:#f5a623}.dot.error{background:#ff6b6b}
+.empty{text-align:center;padding:40px;color:#555560}.empty span{font-size:40px;display:block;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="header">
+  <span style="font-weight:700;color:#e8e8ea;font-size:12px">⚡ Execution Stream</span>
+  <span id="status" class="idle">idle</span>
+  <span id="phase"></span>
+</div>
+<div id="log">
+  <div class="empty"><span>⚡</span>No execution running.<br>Start a build in FLOW mode to see live events.</div>
+</div>
+<script>
+const log = document.getElementById('log');
+const statusEl = document.getElementById('status');
+const phaseEl = document.getElementById('phase');
+let firstEntry = true;
+
+function addEntry(role, message, timestamp) {
+  if (firstEntry) { log.innerHTML = ''; firstEntry = false; }
+  const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = `entry ${role}`;
+  div.innerHTML = `<span class="t">${time}</span><span class="dot ${role}"></span><span class="c">${message}</span>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setStatus(state, phase) {
+  statusEl.className = state;
+  statusEl.textContent = state;
+  phaseEl.textContent = phase || '';
+}
+
+// Listen for events from main process via postMessage
+window.addEventListener('message', function(event) {
+  const data = event.data;
+  if (!data) return;
+
+  if (data.type === 'snapshot') {
+    const state = data.state;
+    if (state) {
+      setStatus(state.badge?.status?.toLowerCase() || 'idle', state.road?.node_state || '');
+      // Add stream entries
+      if (state.stream?.entries) {
+        for (const entry of state.stream.entries.slice(-20)) {
+          const match = entry.match(/^\[(\w+)\]\s*(.+)/);
+          if (match) {
+            addEntry(match[1].toLowerCase(), match[2], data.timestamp);
+          } else {
+            addEntry('system', entry, data.timestamp);
+          }
+        }
+      }
+    }
+  }
+
+  if (data.type === 'event') {
+    const evt = data.event;
+    if (evt) {
+      addEntry(evt.source || 'system', evt.data?.message || JSON.stringify(evt.data), evt.timestamp);
+    }
+  }
+
+  if (data.type === 'clear') {
+    log.innerHTML = '<div class="empty"><span>⚡</span>Stream cleared</div>';
+    firstEntry = true;
+    setStatus('idle', '');
+  }
+});
+</script>
+</body>
+</html>

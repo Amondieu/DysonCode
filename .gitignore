@@ -5,6 +5,10 @@ npm-debug.log*
 # Build output
 dist/
 release/*/resources/app/dist/
+release/win-unpacked/
+release/builder-debug.yml
+release/*.exe
+release/*.exe.blockmap
 asar-extracted/
 
 # IDE
@@ -26,3 +30,20 @@ appdata/
 # Python cache
 __pycache__/
 *.pyc
+
+# Temp / scratch files
+temp_*
+*.bak
+*.log
+build.log
+
+# Asar backups
+asar-backup/
+*.asar.bak
+*.asar.disabled
+
+# Rust build artifacts
+kore-exec/target/
+
+# Large binary assets
+resources/app.asar

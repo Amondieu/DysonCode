@@ -27,8 +27,8 @@ export default function PanelRestoreBar({ hiddenSlots, onRestore, onReset }: Pro
       alignItems: 'center',
       gap: 4,
       padding: '0 6px',
-      background: '#111113',
-      borderTop: '1px solid #333333',
+      background: '#0e0e10',
+      borderTop: '1px solid #222',
       fontSize: 10,
     }}>
       <span style={{ color: '#555555', marginRight: 4 }}>Closed:</span>
@@ -37,8 +37,8 @@ export default function PanelRestoreBar({ hiddenSlots, onRestore, onReset }: Pro
           key={slot.content}
           onClick={() => onRestore(slot.content)}
           style={{
-            background: '#252526',
-            border: '1px solid #333333',
+            background: '#1a1a1e',
+            border: '1px solid #222',
             color: '#808080',
             cursor: 'pointer',
             padding: '1px 6px',
@@ -55,7 +55,7 @@ export default function PanelRestoreBar({ hiddenSlots, onRestore, onReset }: Pro
         onClick={onReset}
         style={{
           background: 'none',
-          border: '1px solid #333333',
+          border: '1px solid #222',
           color: '#555555',
           cursor: 'pointer',
           padding: '1px 6px',

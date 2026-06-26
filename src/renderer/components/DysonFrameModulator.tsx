@@ -1,10 +1,10 @@
 // src/renderer/components/DysonFrameModulator.tsx
 // React component: interactive Frame modulators beneath chat input.
+import './DysonFrameModulator.css';
 // Each Frame transforms text via LLM call (jcode's configured providers).
 // Model defaults: gpt-5.4 primary, deepseek-4-flash fallback.
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import './DysonFrameModulator.css';
 
 /* ═══════════════════════════════════════════════════════════
    FRAME DEFINITIONS
@@ -548,6 +548,7 @@ export function DysonFrameModulator({
                 }
               }}
               type="button"
+              style={{ background: 'transparent', appearance: 'none', WebkitAppearance: 'none' as any }}
             >
               <span className="dyson-frame-symbol" aria-hidden="true">
                 {frame.symbol}
@@ -601,6 +602,7 @@ export function DysonFrameModulator({
           onClick={handleFuse}
           aria-label="Fuse: transform input text through active frames"
           type="button"
+          style={{ background: 'transparent', appearance: 'none', WebkitAppearance: 'none' as any }}
         >
           {isFusing ? (
             <span className="dyson-spinner"></span>

@@ -3,6 +3,9 @@
  * Drag to rearrange panels. × to close. Visual grip dots.
  */
 import React from 'react';
+import { useAppStore } from '../store/appStore';
+
+import React from 'react';
 
 const PANEL_ICONS: Record<string, string> = {
   chat: '💬 Chat',
@@ -28,8 +31,8 @@ export default function PanelDragBar({ label, onClose }: Props) {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 8px',
-        background: '#252526',
-        borderBottom: '1px solid #333333',
+        background: '#16161a',
+        borderBottom: '1px solid #222',
         userSelect: 'none' as const,
         fontSize: 10,
         color: '#808080',
