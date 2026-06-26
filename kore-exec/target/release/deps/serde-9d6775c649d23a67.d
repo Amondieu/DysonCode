@@ -1,0 +1,14 @@
+c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\deps\serde-9d6775c649d23a67.d: C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\build\serde-7b09068155366bbe\out/private.rs
+
+c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\deps\libserde-9d6775c649d23a67.rlib: C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\build\serde-7b09068155366bbe\out/private.rs
+
+c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\deps\libserde-9d6775c649d23a67.rmeta: C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\build\serde-7b09068155366bbe\out/private.rs
+
+C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\Shadow\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+c:\Users\Shadow\ShadowDrive\0.1.Ai\DysonCode\kore-exec\target\release\build\serde-7b09068155366bbe\out/private.rs:
+
+# env-dep:OUT_DIR=c:\\Users\\Shadow\\ShadowDrive\\0.1.Ai\\DysonCode\\kore-exec\\target\\release\\build\\serde-7b09068155366bbe\\out

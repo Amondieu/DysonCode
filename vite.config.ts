@@ -1,44 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import electron from 'vite-plugin-electron';
-import electronRenderer from 'vite-plugin-electron-renderer';
 import path from 'path';
 
-const ROOT = __dirname;
-
 export default defineConfig({
-  root: path.join(ROOT, 'src/renderer'),
+  plugins: [react()],
+  root: 'src/renderer',
   base: './',
   build: {
-    outDir: path.join(ROOT, 'dist/renderer'),
+    outDir: '../../dist/renderer',
+    emptyOutDir: true,
+    sourcemap: true,
   },
-  plugins: [
-    react(),
-    electron([
-      {
-        entry: path.join(ROOT, 'src/main/preload.ts'),
-        onstart(options) {
-          options.reload();
-        },
-        vite: {
-          build: {
-            outDir: path.join(ROOT, 'dist/main'),
-            rollupOptions: {
-              external: ['electron'],
-              output: { format: 'cjs' },
-            },
-            minify: false,
-          },
-        },
-      },
-    ]),
-    electronRenderer(),
-  ],
+  server: {
+    port: 5173,
+  },
   resolve: {
     alias: {
-      '@': path.join(ROOT, 'src'),
-      '@main': path.join(ROOT, 'src/main'),
-      '@renderer': path.join(ROOT, 'src/renderer'),
+      '@': path.resolve(__dirname, 'src/renderer'),
     },
   },
 });

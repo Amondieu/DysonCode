@@ -1,7 +1,28 @@
+# Node
 node_modules/
+npm-debug.log*
+
+# Build output
 dist/
-release/
-*.db
-*.db-journal
-.env
-.vite/
+release/*/resources/app/dist/
+asar-extracted/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Autoclaw logs
+.autoclaw/
+
+# Electron cache
+appdata/
+
+# Python cache
+__pycache__/
+*.pyc
