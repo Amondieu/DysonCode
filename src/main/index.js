@@ -78,10 +78,8 @@ function startBackends() {
   const mode = process.env.KORE_ROUTING_MODE || 'hybrid';
   console.log(`[dyson] routing mode: ${mode}`);
 
-  // Try starting litellm proxy for cloud/hybrid modes
-  if (mode === 'cloud' || mode === 'hybrid') {
-    startLiteLLM();
-  }
+  // Always try to start litellm proxy — it will skip if already running
+  startLiteLLM();
 }
 
 function findLiteLLMConfig() {
