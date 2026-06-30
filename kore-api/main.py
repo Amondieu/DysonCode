@@ -63,6 +63,7 @@ from routes.mcp import router as mcp_router
 from routes.wellknown import router as wk_router
 from routes.register import router as register_router
 from routes.leaderboard import router as leaderboard_router
+from routes.lab import router as lab_router
 from middleware.audit import router as audit_router, AuditMiddleware
 from middleware.quotas import QuotaMiddleware
 from middleware.security import SecurityMiddleware
@@ -115,6 +116,7 @@ app.include_router(wk_router)
 app.include_router(audit_router)
 app.include_router(register_router)
 app.include_router(leaderboard_router)
+app.include_router(lab_router)
 
 # ΩAudit middleware
 app.add_middleware(AuditMiddleware)
