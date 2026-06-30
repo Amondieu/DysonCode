@@ -4,9 +4,11 @@ GET /robots.txt — For web crawlers
 GET /sitemap.xml — For search engines
 """
 
-from fastapi import APIRouter, Response
-from fastapi.responses import HTMLResponse
+import json, logging
+from fastapi import APIRouter, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 LANDING_HTML = """<!DOCTYPE html>
@@ -78,9 +80,70 @@ async def root():
 
 
 @router.post("/")
-async def root_post():
-    """Accept POST for MCP/Smithery initialization probes."""
-    return {"status": "ok", "service": "kore-universal-services"}
+async def root_post(request: Request):
+    """
+    MCP JSON-RPC transport endpoint.
+    Handles initialize and tools/list for Smithery/MCP clients.
+    """
+    from routes.services import SERVICES
+
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"status": "ok", "service": "kore-universal-services"})
+
+    method = body.get("method", "")
+    msg_id = body.get("id", 1)
+
+    if method == "initialize":
+        return JSONResponse({
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "serverInfo": {"name": "kore-universal-services", "version": "1.0.0"},
+            },
+        })
+
+    if method == "tools/list":
+        return JSONResponse({
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": {
+                "tools": [
+                    {
+                        "name": s["id"],
+                        "description": s.get("tagline", s["name"]),
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"prompt": {"type": "string"}},
+                        },
+                    }
+                    for s in SERVICES
+                ],
+            },
+        })
+
+    if method == "tools/call":
+        return JSONResponse({
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": {
+                "content": [{"type": "text", "text": f"Call {body.get('params', {}).get('name', 'unknown')}"}],
+            },
+        })
+
+    # Notifications (no id)
+    if msg_id is None:
+        return Response(status_code=200)
+
+    # Unknown method
+    return JSONResponse({
+        "jsonrpc": "2.0",
+        "id": msg_id,
+        "error": {"code": -32601, "message": f"Method not found: {method}"},
+    })
 
 
 @router.get("/robots.txt")
