@@ -86,6 +86,34 @@ AGENT_CARD = {
 }
 
 
+BASE_URL = "https://triumphant-enthusiasm-production-625b.up.railway.app"
+
+
 @router.get("/.well-known/agent.json")
 async def agent_discovery():
     return AGENT_CARD
+
+
+@router.get("/.well-known/ai-plugin.json")
+async def ai_plugin():
+    """OpenAI Plugin Discovery — enables GPTs to find KORE."""
+    return {
+        "schema_version": "v1",
+        "name_for_human": "KORE API",
+        "name_for_model": "kore_api",
+        "description_for_human": "AI compliance verification, scoring & strategy simulation. 13 services for AI agents.",
+        "description_for_model": (
+            "Use KORE to verify compliance claims, score candidates, "
+            "run strategy simulations, compress contexts, detect hallucinations, "
+            "and manage cross-agent memory. Call POST /v1/register first to get a free API key."
+        ),
+        "auth": {"type": "user_http", "authorization_type": "bearer"},
+        "api": {"type": "openapi", "url": f"{BASE_URL}/openapi.json"},
+        "logo_url": f"{BASE_URL}/logo.png",
+        "contact_email": "api@kore.ai",
+        "legal_info_url": f"{BASE_URL}/pricing",
+        "tools": [
+            {"name": s["id"], "description": s.get("tagline", s["name"])}
+            for s in SERVICES
+        ],
+    }

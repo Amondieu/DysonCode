@@ -79,7 +79,7 @@ async def verify_endpoint(req: VerifyRequest, auth: AuthContext = Depends(requir
     t0 = time.time()
     try:
         # Billing
-        billing = check_and_record(auth.tier, auth.customer_id)
+        billing = check_and_record(auth.tier, auth.customer_id, service="verify")
 
         # Verify
         if HAS_REAL_VERIFIER:
