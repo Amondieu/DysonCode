@@ -1,0 +1,13 @@
+models/
+data/
+node_modules/
+cherry-pick/
+asar-extracted/
+app_backup/
+__pycache__/
+*.pyc
+.git/
+logs/
+*.gguf
+*.bin
+*.pt
