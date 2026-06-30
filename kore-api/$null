@@ -1,0 +1,2 @@
+curl: option -ForegroundColor: is badly used here
+curl: try 'curl --help' for more information

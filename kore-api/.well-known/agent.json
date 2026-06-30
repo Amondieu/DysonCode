@@ -1,0 +1,129 @@
+{
+  "name": "KORE Universal Agent Services",
+  "description": "13 universal infrastructure services for AI agents: hallucination firewall (ΨGuard), context compression (ΔPack), semantic dedup (ΩDeDup), cross-agent memory (ΦMem), token cost arbitrage (ΞRoute), prompt normalizer (ΛNorm), quality scorer (ΘScore), task decomposer (ΣSplit), semantic diff (ΓDiff), claim provenance (ΠProve), embedding cache (ΦEmbed), agent sandbox (ΨSandbox), immutable audit log (ΩAudit).",
+  "url": "https://triumphant-enthusiasm-production-625b.up.railway.app",
+  "version": "1.0.0",
+  "capabilities": {
+    "a2a": {
+      "endpoint": "/a2a/tasks/send",
+      "supported_message_types": ["text", "data"]
+    },
+    "mcp": {
+      "endpoint": "/mcp/call",
+      "manifest": "/mcp/manifest"
+    },
+    "rest": {
+      "endpoint": "/v1/compliance/verify",
+      "openapi": "/openapi.json"
+    }
+  },
+  "trust_card": "/trust-card",
+  "pricing": "/pricing",
+  "service_catalog": "/v1/services",
+  "authentication": {
+    "type": "api-key",
+    "signup_url": "https://triumphant-enthusiasm-production-625b.up.railway.app/pricing"
+  },
+  "skills": [
+    {
+      "id": "hallucination-guard",
+      "name": "ΨGuard Hallucination Firewall",
+      "description": "Last gate before agent output emission. Flags unsupported claims against source documents.",
+      "endpoint": "POST /v1/guard",
+      "score": 8.94,
+      "tags": ["safety", "hallucination", "guard", "verification"]
+    },
+    {
+      "id": "context-compression",
+      "name": "ΔPack Context Compression",
+      "description": "3-5x semantic compression without quality loss. Reduces token costs dramatically.",
+      "endpoint": "POST /v1/compress",
+      "score": 9.0,
+      "tags": ["cost", "compression", "tokens", "efficiency"]
+    },
+    {
+      "id": "cross-agent-memory",
+      "name": "ΦMem Cross-Agent Memory",
+      "description": "Shared Qdrant-backed memory across all agents. Network effect for agent swarms.",
+      "endpoint": "POST /v1/memory/write, /v1/memory/recall",
+      "score": 9.11,
+      "tags": ["memory", "persistence", "qdrant", "swarm"]
+    },
+    {
+      "id": "token-routing",
+      "name": "ΞRoute Token Cost Arbitrage",
+      "description": "Routes to cheapest adequate model from 11-provider fallback chain. Saves 60-90% on inference.",
+      "endpoint": "POST /v1/route",
+      "score": 8.0,
+      "tags": ["routing", "cost", "optimization", "fallback"]
+    },
+    {
+      "id": "prompt-normalizer",
+      "name": "ΛNorm Prompt Normalizer",
+      "description": "Strips noise, detects injections, normalizes whitespace. 10 injection patterns detected.",
+      "endpoint": "POST /v1/normalize",
+      "score": 8.7,
+      "tags": ["security", "injection", "normalization", "sanitization"]
+    },
+    {
+      "id": "quality-scorer",
+      "name": "ΘScore Output Quality Scorer",
+      "description": "Ranks multiple candidate outputs by heuristic quality (length, code, structure, coverage).",
+      "endpoint": "POST /v1/score",
+      "score": 8.5,
+      "tags": ["quality", "scoring", "ranking", "evaluation"]
+    },
+    {
+      "id": "task-decomposer",
+      "name": "ΣSplit Task Decomposer",
+      "description": "Splits complex tasks into parallel subtasks. 5 decomposition types supported.",
+      "endpoint": "POST /v1/split",
+      "score": 8.3,
+      "tags": ["planning", "decomposition", "parallel", "workflow"]
+    },
+    {
+      "id": "semantic-diff",
+      "name": "ΓDiff Semantic Diff Engine",
+      "description": "Meaning-preserving diff between two text outputs using difflib SequenceMatcher.",
+      "endpoint": "POST /v1/diff",
+      "score": 7.8,
+      "tags": ["diff", "comparison", "versioning", "change-tracking"]
+    },
+    {
+      "id": "claim-provenance",
+      "name": "ΠProve Claim Provenance",
+      "description": "EU AI Act compliant provenance certificates with HMAC-SHA256 hash chains.",
+      "endpoint": "POST /v1/provenance/certify",
+      "score": 8.85,
+      "tags": ["compliance", "provenance", "eu-ai-act", "hash-chain"]
+    },
+    {
+      "id": "embedding-cache",
+      "name": "ΦEmbed Embedding Cache",
+      "description": "LRU-cached embeddings via all-MiniLM-L6-v2. Zero recomputation for repeated texts.",
+      "endpoint": "POST /v1/embed",
+      "score": 7.6,
+      "tags": ["embedding", "cache", "vector", "miniLM"]
+    },
+    {
+      "id": "agent-sandbox",
+      "name": "ΨSandbox Agent Sandbox",
+      "description": "Safe code execution. No Docker needed. 30s timeout with temp file cleanup.",
+      "endpoint": "POST /v1/sandbox/exec",
+      "score": 8.82,
+      "tags": ["sandbox", "execution", "code", "isolation"]
+    },
+    {
+      "id": "audit-log",
+      "name": "ΩAudit Immutable Audit Log",
+      "description": "HMAC-SHA256 chained audit trail. EU AI Act compliant. Tamper-evident logging.",
+      "endpoint": "GET /v1/audit/trail",
+      "score": 9.15,
+      "tags": ["audit", "compliance", "hmac", "tamper-evident"]
+    }
+  ],
+  "metrics": {
+    "trust_card_url": "/trust-card",
+    "update_frequency_seconds": 300
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "kore-universal-services",
+  "version": "1.0.0",
+  "description": "13 universal infrastructure tools for AI agents",
+  "tools": [
+    {"name": "verify_claim", "description": "Verify answer against source documents", "input_schema": {"type": "object", "properties": {"question": {"type": "string"}, "answer": {"type": "string"}, "sources": {"type": "array"}}, "required": ["question", "answer", "sources"]}},
+    {"name": "compress_context", "description": "Compress context 3-5x semantically", "input_schema": {"type": "object", "properties": {"text": {"type": "string"}, "profile": {"type": "string"}}, "required": ["text"]}},
+    {"name": "route_task", "description": "Route to cheapest adequate model", "input_schema": {"type": "object", "properties": {"task_text": {"type": "string"}, "source_count": {"type": "integer"}}, "required": ["task_text"]}},
+    {"name": "memory_write", "description": "Store observation in cross-agent memory", "input_schema": {"type": "object", "properties": {"observation": {"type": "string"}, "domain": {"type": "string"}}, "required": ["observation"]}},
+    {"name": "memory_recall", "description": "Retrieve relevant memories", "input_schema": {"type": "object", "properties": {"query": {"type": "string"}, "domain": {"type": "string"}, "k": {"type": "integer"}}, "required": ["query"]}},
+    {"name": "normalize_prompt", "description": "Detect injections, normalize whitespace", "input_schema": {"type": "object", "properties": {"text": {"type": "string"}, "mode": {"type": "string"}}, "required": ["text"]}},
+    {"name": "guard_output", "description": "Check output for hallucination", "input_schema": {"type": "object", "properties": {"output": {"type": "string"}, "sources": {"type": "array"}, "threshold": {"type": "number"}}, "required": ["output"]}},
+    {"name": "score_outputs", "description": "Rank candidate outputs by quality", "input_schema": {"type": "object", "properties": {"task": {"type": "string"}, "candidates": {"type": "array"}}, "required": ["task", "candidates"]}},
+    {"name": "split_task", "description": "Decompose complex task into subtasks", "input_schema": {"type": "object", "properties": {"task": {"type": "string"}}, "required": ["task"]}},
+    {"name": "semantic_diff", "description": "Compute semantic diff between texts", "input_schema": {"type": "object", "properties": {"original": {"type": "string"}, "modified": {"type": "string"}}, "required": ["original", "modified"]}},
+    {"name": "provenance_certify", "description": "Generate provenance certificate", "input_schema": {"type": "object", "properties": {"claim": {"type": "string"}, "source_id": {"type": "string"}, "confidence": {"type": "number"}}, "required": ["claim"]}},
+    {"name": "embed_text", "description": "Compute text embedding (cached)", "input_schema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}},
+    {"name": "sandbox_exec", "description": "Execute Python code in sandbox", "input_schema": {"type": "object", "properties": {"code": {"type": "string"}, "language": {"type": "string"}}, "required": ["code"]}}
+  ]
+}

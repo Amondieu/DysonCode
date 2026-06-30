@@ -1,0 +1,30 @@
+{
+  "name": "KORE Universal Agent Services",
+  "description": "13 universal infrastructure services for AI agents: hallucination firewall, context compression, semantic dedup, cross-agent memory, token cost arbitrage, prompt normalizer, quality scorer, task decomposer, semantic diff, claim provenance, embedding cache, agent sandbox, immutable audit log.",
+  "url": "https://api.kore.ai",
+  "version": "1.0.0",
+  "capabilities": {
+    "a2a": { "endpoint": "/a2a/tasks/send", "supported_message_types": ["text", "data"] },
+    "mcp": { "endpoint": "/mcp/call", "manifest": "/mcp/manifest" },
+    "rest": { "endpoint": "/v1/compliance/verify", "openapi": "/openapi.json" }
+  },
+  "trust_card": "/trust-card",
+  "pricing": "/pricing",
+  "service_catalog": "/v1/services",
+  "authentication": { "type": "api-key", "signup_url": "https://triumphant-enthusiasm-production-625b.up.railway.app/pricing" },
+  "skills": [
+    {"id": "hallucination-guard", "name": "Hallucination Firewall", "tags": ["safety", "hallucination", "guard"]},
+    {"id": "context-compression", "name": "Context Compression", "tags": ["cost", "compression", "tokens"]},
+    {"id": "cross-agent-memory", "name": "Cross-Agent Memory", "tags": ["memory", "persistence", "qdrant"]},
+    {"id": "token-routing", "name": "Token Cost Arbitrage", "tags": ["routing", "cost", "optimization"]},
+    {"id": "prompt-normalizer", "name": "Prompt Normalizer", "tags": ["security", "injection", "normalization"]},
+    {"id": "quality-scorer", "name": "Output Quality Scorer", "tags": ["quality", "scoring", "ranking"]},
+    {"id": "task-decomposer", "name": "Task Decomposer", "tags": ["planning", "decomposition", "parallel"]},
+    {"id": "semantic-diff", "name": "Semantic Diff", "tags": ["diff", "comparison", "versioning"]},
+    {"id": "claim-provenance", "name": "Claim Provenance", "tags": ["compliance", "provenance", "eu-ai-act"]},
+    {"id": "embedding-cache", "name": "Embedding Cache", "tags": ["embedding", "cache", "vector"]},
+    {"id": "agent-sandbox", "name": "Agent Sandbox", "tags": ["sandbox", "execution", "code"]},
+    {"id": "audit-log", "name": "Immutable Audit Log", "tags": ["audit", "compliance", "hmac"]}
+  ],
+  "metrics": { "trust_card_url": "/trust-card", "update_frequency_seconds": 300 }
+}

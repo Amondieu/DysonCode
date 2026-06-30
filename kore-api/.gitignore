@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Billing state
+billing_state.json
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/

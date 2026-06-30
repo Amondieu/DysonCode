@@ -1,0 +1,228 @@
+{
+  "name": "kore-universal-services",
+  "version": "1.0.0",
+  "description": "13 universal infrastructure services for AI agents: hallucination firewall, context compression, semantic dedup, cross-agent memory, token cost arbitrage, prompt normalizer, quality scorer, task decomposer, semantic diff, claim provenance, embedding cache, agent sandbox, immutable audit log",
+  "author": "KORE AI",
+  "homepage": "https://triumphant-enthusiasm-production-625b.up.railway.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amondieu/kore-api"
+  },
+  "license": "MIT",
+  "categories": [
+    "infrastructure",
+    "ai-agents",
+    "compliance",
+    "security",
+    "memory"
+  ],
+  "tags": [
+    "hallucination-guard",
+    "context-compression",
+    "semantic-dedup",
+    "cross-agent-memory",
+    "token-routing",
+    "prompt-security",
+    "quality-scoring",
+    "task-decomposition",
+    "semantic-diff",
+    "claim-provenance",
+    "embedding-cache",
+    "agent-sandbox",
+    "audit-log",
+    "eu-ai-act",
+    "a2a",
+    "mcp"
+  ],
+  "deployment": {
+    "platform": "railway",
+    "url": "https://triumphant-enthusiasm-production-625b.up.railway.app",
+    "health_endpoint": "/health",
+    "service_catalog": "/v1/services"
+  },
+  "protocols": {
+    "mcp": {
+      "manifest": "/mcp/manifest",
+      "call": "/mcp/call",
+      "tools": [
+        {
+          "name": "verify_claim",
+          "description": "Verify answer against source documents with calibrated confidence",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "question": {"type": "string"},
+              "answer": {"type": "string"},
+              "sources": {"type": "array", "items": {"type": "object"}}
+            },
+            "required": ["question", "answer", "sources"]
+          }
+        },
+        {
+          "name": "compress_context",
+          "description": "Compress context 3-5x semantically without quality loss",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "text": {"type": "string"},
+              "profile": {"type": "string", "enum": ["aggressive", "balanced", "preserve"]}
+            },
+            "required": ["text"]
+          }
+        },
+        {
+          "name": "route_task",
+          "description": "Route to cheapest adequate model via 11-provider fallback chain",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "task_text": {"type": "string"},
+              "source_count": {"type": "integer"}
+            },
+            "required": ["task_text"]
+          }
+        },
+        {
+          "name": "memory_write",
+          "description": "Store observation in cross-agent memory (Qdrant-backed)",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "observation": {"type": "string"},
+              "domain": {"type": "string"}
+            },
+            "required": ["observation"]
+          }
+        },
+        {
+          "name": "memory_recall",
+          "description": "Retrieve relevant memories across all agents",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "query": {"type": "string"},
+              "domain": {"type": "string"},
+              "k": {"type": "integer"}
+            },
+            "required": ["query"]
+          }
+        },
+        {
+          "name": "normalize_prompt",
+          "description": "Detect injections, normalize whitespace, strip noise",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "text": {"type": "string"},
+              "mode": {"type": "string", "enum": ["minimal", "balanced", "strict"]}
+            },
+            "required": ["text"]
+          }
+        },
+        {
+          "name": "guard_output",
+          "description": "Check output for hallucination against source documents",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "output": {"type": "string"},
+              "sources": {"type": "array", "items": {"type": "object"}},
+              "threshold": {"type": "number"}
+            },
+            "required": ["output"]
+          }
+        },
+        {
+          "name": "score_outputs",
+          "description": "Rank multiple candidate outputs by heuristic quality",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "task": {"type": "string"},
+              "candidates": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["task", "candidates"]
+          }
+        },
+        {
+          "name": "split_task",
+          "description": "Decompose complex task into parallel subtasks",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "task": {"type": "string"}
+            },
+            "required": ["task"]
+          }
+        },
+        {
+          "name": "semantic_diff",
+          "description": "Compute meaning-preserving diff between two texts",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "original": {"type": "string"},
+              "modified": {"type": "string"}
+            },
+            "required": ["original", "modified"]
+          }
+        },
+        {
+          "name": "provenance_certify",
+          "description": "Generate EU AI Act compliant provenance certificate with HMAC hash chain",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "claim": {"type": "string"},
+              "source_id": {"type": "string"},
+              "confidence": {"type": "number"}
+            },
+            "required": ["claim"]
+          }
+        },
+        {
+          "name": "embed_text",
+          "description": "Compute text embedding via all-MiniLM with LRU cache",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "text": {"type": "string"}
+            },
+            "required": ["text"]
+          }
+        },
+        {
+          "name": "sandbox_exec",
+          "description": "Execute Python code in isolated sandbox (30s timeout)",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "code": {"type": "string"},
+              "language": {"type": "string", "default": "python"}
+            },
+            "required": ["code"]
+          }
+        }
+      ]
+    },
+    "a2a": {
+      "endpoint": "/a2a/tasks/send",
+      "supported_message_types": ["text", "data"],
+      "trust_card": "/trust-card"
+    },
+    "rest": {
+      "openapi": "/openapi.json",
+      "service_catalog": "/v1/services",
+      "pricing": "/pricing"
+    }
+  },
+  "authentication": {
+    "type": "api-key",
+    "header": "x-api-key",
+    "signup_url": "https://triumphant-enthusiasm-production-625b.up.railway.app/pricing"
+  },
+  "metrics": {
+    "trust_card_url": "/trust-card",
+    "update_frequency_seconds": 300
+  }
+}
