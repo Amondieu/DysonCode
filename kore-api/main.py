@@ -33,6 +33,7 @@ if _kore_root not in sys.path:
 
 from fastapi import FastAPI, Request, Header
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 try:
     from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -74,6 +75,12 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 
 # ── FastAPI App ─────────────────────────────────────────────────────────
 app = FastAPI(title="KORE Universal Agent Services", version="1.0.0")
+
+# ── Static Files (logo, etc.) ─────────────────────────────────────────
+import os as _os
+_static_dir = _os.path.join(_os.path.dirname(__file__), "static")
+if _os.path.isdir(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
 
 # ── Rate Limiting (optional — pip install slowapi) ────────────────────
 if HAS_SLOWAPI:
