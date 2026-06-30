@@ -1,12 +1,13 @@
 """
-Per-call Stripe Meter billing + quota enforcement.
+Hybrid billing: daily free allowance + credit packs + PAYG overage.
 
-Layer 1 — Pay-as-you-go:
-  Every API call reports cost to Stripe Meter Event.
-  No prepaid credits needed. Agents start immediately.
-  Stripe aggregates and invoices at month end.
+Stages:
+  0 — Free Forever:   100 credits on register, 3 free compress + route/day
+  1 — Credit Packs:   Starter €9 / Builder €35 / Scale €99 / Enterprise €399
+  2 — PAYG Overlay:   Scale+ only, Stripe Meter for overage beyond pack limit
+  3 — Subscription:   Drift/Session/Dataset (monthly recurring)
 
-Quota enforcement (soft cap):
+Quota (soft monthly cap):
     free:       10k calls/month
     starter:    50k calls/month
     growth:    300k calls/month
@@ -15,7 +16,7 @@ Quota enforcement (soft cap):
 """
 
 import json, os, logging
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,16 @@ SERVICE_COSTS = {
 }
 DEFAULT_COST = 5
 
+# Daily free allowance per service (hook services — cheap, high value)
+DAILY_FREE = {"compress": 3, "route": 3}
+
+# Services that are always free (acquisition, discovery, network effects)
+ALWAYS_FREE = {"register", "trust-card", "agent_card"}
+
+
+def _today() -> str:
+    return date.today().isoformat()
+
 
 def _load_state() -> dict:
     try:
@@ -56,7 +67,7 @@ def _save_state(state: dict):
 
 
 def _get_or_create_customer(customer_id: str, state: dict) -> dict:
-    """Get or create customer entry with Stripe customer ID."""
+    """Get or create customer entry."""
     return state.setdefault(customer_id, {
         "stripe_customer_id": None,
         "calls": 0,
@@ -66,7 +77,7 @@ def _get_or_create_customer(customer_id: str, state: dict) -> dict:
 
 
 def _report_to_stripe_meter(stripe_customer_id: str, cost: int):
-    """Report a metered event to Stripe for per-call billing."""
+    """Report usage to Stripe Meter for PAYG overage billing."""
     if not STRIPE_KEY or not stripe_customer_id:
         return
     try:
@@ -94,26 +105,35 @@ def set_stripe_customer_id(customer_id: str, stripe_id: str):
 
 def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> dict:
     """
-    Record a call: enforce quota, meter to Stripe, track credits.
+    Check + record a call through the hybrid billing system.
 
-    Args:
-        tier: free|starter|growth|business|enterprise
-        customer_id: local customer identifier
-        service: service name for cost calculation
+    Resolution order:
+      1. Always-free service? → pass through at zero cost
+      2. Daily free allowance available? → use it (compress/route: 3/day)
+      3. Enough credits in pack? → deduct
+      4. Scale+ with PAYG? → meter to Stripe, allow overage
+      5. Otherwise → 402 Insufficient credits
 
-    Returns:
-        dict with calls_this_month, quota_remaining, cost
+    Returns dict with cost, free_tier_used, quota_remaining.
     """
+    # Always-free services (acquisition, discovery)
+    if service in ALWAYS_FREE:
+        return {
+            "calls_this_month": 0,
+            "quota_remaining": TIERS.get(tier, 10_000),
+            "cost_credits": 0,
+            "cost_eur": 0.0,
+            "free": True,
+            "detail": "always_free",
+        }
+
     state = _load_state()
     entry = _get_or_create_customer(customer_id, state)
-
-    # Update tier if changed
     entry["tier"] = tier
 
-    # Calculate cost in credits
     cost = SERVICE_COSTS.get(service, DEFAULT_COST)
 
-    # Quota check (monthly)
+    # Monthly quota check
     month_key = datetime.now(timezone.utc).strftime("%Y-%m")
     month_entry = state.setdefault(f"meter:{customer_id}:{month_key}", {"calls": 0, "credits": 0})
     limit = TIERS.get(tier, 10_000)
@@ -124,22 +144,68 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
             f"Upgrade at /pricing"
         )
 
-    # Increment counters
-    month_entry["calls"] += 1
-    month_entry["credits"] += cost
-    entry["calls"] = entry.get("calls", 0) + 1
-    entry["credits_spent"] = entry.get("credits_spent", 0) + cost
+    # Stage 1: Daily free allowance (hook services)
+    if service in DAILY_FREE:
+        today = _today()
+        daily_key = f"daily:{customer_id}:{service}:{today}"
+        daily_entry = state.setdefault(daily_key, 0)
+        if daily_entry < DAILY_FREE[service]:
+            state[daily_key] = daily_entry + 1
+            month_entry["calls"] += 1
+            _save_state(state)
+            return {
+                "calls_this_month": month_entry["calls"],
+                "quota_remaining": limit - month_entry["calls"],
+                "cost_credits": 0,
+                "cost_eur": 0.0,
+                "free": True,
+                "detail": f"daily_free ({daily_entry + 1}/{DAILY_FREE[service]})",
+            }
 
-    _save_state(state)
+    # Stage 2: Credit pack deduction
+    from middleware.credits import spend_credits, get_credits
+    has_credits = spend_credits(customer_id, service)
 
-    # Report to Stripe Meter (every call now — pay-as-you-go)
-    if entry.get("stripe_customer_id"):
+    if has_credits:
+        month_entry["calls"] += 1
+        month_entry["credits"] += cost
+        entry["calls"] = entry.get("calls", 0) + 1
+        entry["credits_spent"] = entry.get("credits_spent", 0) + cost
+        _save_state(state)
+
+        balance = get_credits(customer_id)
+        return {
+            "calls_this_month": month_entry["calls"],
+            "quota_remaining": limit - month_entry["calls"],
+            "cost_credits": cost,
+            "cost_eur": round(cost * 0.001, 4),
+            "credits_remaining": balance,
+            "free": False,
+            "detail": "credit_pack",
+        }
+
+    # Stage 3: PAYG Overage (Scale+ tier only)
+    if tier in ("scale", "enterprise") and entry.get("stripe_customer_id"):
+        month_entry["calls"] += 1
+        month_entry["credits"] += cost
+        entry["calls"] += 1
+        entry["credits_spent"] += cost
+        _save_state(state)
+
         _report_to_stripe_meter(entry["stripe_customer_id"], cost)
 
-    return {
-        "calls_this_month": month_entry["calls"],
-        "quota_remaining": limit - month_entry["calls"],
-        "credits_this_month": month_entry["credits"],
-        "cost_credits": cost,
-        "cost_eur": round(cost * 0.001, 4),
-    }
+        return {
+            "calls_this_month": month_entry["calls"],
+            "quota_remaining": limit - month_entry["calls"],
+            "cost_credits": cost,
+            "cost_eur": round(cost * 0.001, 4),
+            "free": False,
+            "detail": "payg_overage",
+        }
+
+    # Stage 4: Insufficient credits — tell them how to get more
+    raise PermissionError(
+        f"Insufficient credits for {service} (cost: {cost}). "
+        f"Free daily: compress/route — {DAILY_FREE['compress']}/day each. "
+        f"Buy credits: GET /buy/starter | /buy/builder | /buy/scale | /buy/enterprise"
+    )
