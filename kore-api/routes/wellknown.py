@@ -12,6 +12,27 @@ from routes.services import SERVICES
 
 router = APIRouter()
 
+
+def _skill_tags(service_id: str) -> list[str]:
+    """Map service IDs to discovery tags."""
+    tag_map = {
+        "guard": ["safety", "hallucination", "guard", "verification"],
+        "compress": ["cost", "compression", "tokens", "efficiency"],
+        "dedup": ["deduplication", "rag", "semantic", "ingestion"],
+        "memory": ["memory", "persistence", "qdrant", "swarm"],
+        "route": ["routing", "cost", "optimization", "fallback"],
+        "normalize": ["security", "injection", "normalization", "sanitization"],
+        "score": ["quality", "scoring", "ranking", "evaluation"],
+        "split": ["planning", "decomposition", "parallel", "workflow"],
+        "diff": ["diff", "comparison", "versioning", "change-tracking"],
+        "provenance": ["compliance", "provenance", "eu-ai-act", "hash-chain"],
+        "embed": ["embedding", "cache", "vector", "miniLM"],
+        "sandbox": ["sandbox", "execution", "code", "isolation"],
+        "audit": ["audit", "compliance", "hmac", "tamper-evident"],
+    }
+    return tag_map.get(service_id, ["ai", "service"])
+
+
 AGENT_CARD = {
     "name": "KORE Universal Agent Services",
     "description": "13 universal infrastructure services for AI agents: "
@@ -63,26 +84,6 @@ AGENT_CARD = {
         "update_frequency_seconds": 300,
     },
 }
-
-
-def _skill_tags(service_id: str) -> list[str]:
-    """Map service IDs to discovery tags."""
-    tag_map = {
-        "guard": ["safety", "hallucination", "guard", "verification"],
-        "compress": ["cost", "compression", "tokens", "efficiency"],
-        "dedup": ["deduplication", "rag", "semantic", "ingestion"],
-        "memory": ["memory", "persistence", "qdrant", "swarm"],
-        "route": ["routing", "cost", "optimization", "fallback"],
-        "normalize": ["security", "injection", "normalization", "sanitization"],
-        "score": ["quality", "scoring", "ranking", "evaluation"],
-        "split": ["planning", "decomposition", "parallel", "workflow"],
-        "diff": ["diff", "comparison", "versioning", "change-tracking"],
-        "provenance": ["compliance", "provenance", "eu-ai-act", "hash-chain"],
-        "embed": ["embedding", "cache", "vector", "miniLM"],
-        "sandbox": ["sandbox", "execution", "code", "isolation"],
-        "audit": ["audit", "compliance", "hmac", "tamper-evident"],
-    }
-    return tag_map.get(service_id, ["ai", "service"])
 
 
 @router.get("/.well-known/agent.json")
