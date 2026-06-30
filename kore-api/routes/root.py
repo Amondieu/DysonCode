@@ -77,6 +77,12 @@ async def root():
     return HTMLResponse(LANDING_HTML)
 
 
+@router.post("/")
+async def root_post():
+    """Accept POST for MCP/Smithery initialization probes."""
+    return {"status": "ok", "service": "kore-universal-services"}
+
+
 @router.get("/robots.txt")
 async def robots():
     return Response(
