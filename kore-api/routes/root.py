@@ -68,6 +68,7 @@ a{color:#6c8cf8;text-decoration:none}
 </div>
 <div class="footer">
 <a href="/v1/services">📋 Service Catalog</a> · <a href="/trust-card">📊 Trust Card</a> · <a href="/pricing">💰 Pricing</a> · <a href="/docs">📖 API Docs</a><br><br>
+<a href="https://smithery.ai/servers/amonmaly-33/kore-api"><img src="https://smithery.ai/badge/amonmaly-33/kore-api" alt="smithery badge" style="vertical-align:middle"></a><br><br>
 KORE v1.0.0 — 13 services · 26 endpoints · $333k/mo projected
 </div>
 </div></body></html>
