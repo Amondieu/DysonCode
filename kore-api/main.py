@@ -227,6 +227,7 @@ if _STRIPE_KEY:
                               "product_data": {"name": f"{pack.title()} Pack"}}, "quantity": 1}
 
             # Use Payment Link (clean URLs without hash fragments)
+            from fastapi.responses import RedirectResponse
             try:
                 payment_link = _stripe.PaymentLink.create(
                     line_items=[line_item],
@@ -234,7 +235,7 @@ if _STRIPE_KEY:
                     metadata={"pack": pack, "credits": str(p["credits"])},
                     after_completion={"type": "redirect", "redirect": {"url": "https://triumphant-enthusiasm-production-625b.up.railway.app/success"}},
                 )
-                return {"checkout_url": payment_link.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline", "type": "payment_link"}
+                return RedirectResponse(url=payment_link.url, status_code=303)
             except Exception:
                 # Fallback to checkout session
                 session = _stripe.checkout.Session.create(
@@ -245,7 +246,7 @@ if _STRIPE_KEY:
                     success_url="https://triumphant-enthusiasm-production-625b.up.railway.app/success",
                     cancel_url="https://triumphant-enthusiasm-production-625b.up.railway.app/pricing",
                 )
-                return {"checkout_url": session.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline", "type": "checkout_session"}
+                return RedirectResponse(url=session.url, status_code=303)
         except Exception as e:
             return {"status": "error", "detail": str(e)}
 
