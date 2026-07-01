@@ -1,0 +1,5 @@
+{"decision_id":"dec_init_001","timestamp":"2026-07-01T20:30:00Z","decision":"Native Postgres/JSONB first, semantic retrieval later","status":"active"}
+{"decision_id":"dec_init_002","timestamp":"2026-07-01T20:30:00Z","decision":"Memanto as optional external backend","status":"active"}
+{"decision_id":"dec_init_003","timestamp":"2026-07-01T20:30:00Z","decision":"10 typed memory types (fact, decision, instruction, goal, artifact, error, context, event, risk, pattern)","status":"active"}
+{"decision_id":"dec_init_004","timestamp":"2026-07-01T20:30:00Z","decision":"Hybrid billing: free + packs + PAYG + Free-Limit-Trap","status":"active"}
+{"decision_id":"dec_init_005","timestamp":"2026-07-01T20:30:00Z","decision":"x-api-key auth header (Smithery-compatible), Authorization:Bearer fallback","status":"active"}

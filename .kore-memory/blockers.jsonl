@@ -1,0 +1,2 @@
+{"blocker_id":"blk_init_001","timestamp":"2026-07-01T20:30:00Z","blocker":"Postgres DB instance needed for memory persistence","status":"open"}
+{"blocker_id":"blk_init_002","timestamp":"2026-07-01T20:30:00Z","blocker":"Alembic down_revision needed from production migration graph","status":"open"}
