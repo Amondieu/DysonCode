@@ -256,16 +256,26 @@ if _STRIPE_KEY:
         <!DOCTYPE html>
         <html><head><meta charset="utf-8"><title>Purchase Successful</title>
         <style>body{font-family:sans-serif;max-width:600px;margin:50px auto;
-        padding:20px;background:#f5f5f5;text-align:center}
-        .card{background:white;padding:30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-        h1{color:#2d5236} .btn{display:inline-block;padding:12px 24px;
-        background:#4a7c59;color:white;text-decoration:none;border-radius:6px;margin-top:20px}
+        padding:20px;background:#0a0a1a;color:#e0e0e0;text-align:center}
+        .card{background:#14142e;padding:30px;border-radius:12px;border:1px solid rgba(255,255,255,0.06)}
+        h1{color:#2dd4bf;margin-bottom:8px}
+        .key-box{background:#0a0a1a;border:1px solid #2dd4bf;border-radius:8px;padding:12px;
+                 font-family:monospace;font-size:0.9rem;color:#2dd4bf;margin:16px 0;
+                 word-break:break-all}
+        .btn{display:inline-block;padding:12px 24px;
+        background:#2dd4bf;color:#0a0a1a;text-decoration:none;border-radius:6px;font-weight:600;margin-top:12px}
+        .btn:hover{background:#14b8a6}
+        .hint{color:#888;font-size:0.85rem;margin-top:16px}
         </style></head><body>
         <div class="card">
-        <h1>✅ Purchase Successful</h1>
-        <p>Your credits have been added to your account.</p>
-        <p>Use your API key to call any of the 13 KORE services.</p>
-        <a class="btn" href="/v1/services">View Services</a>
+        <h1>✅ Payment Received</h1>
+        <p style="color:#aaa">Your credits have been added.</p>
+        <h3 style="color:#2dd4bf;margin-top:20px">Get Your Free API Key</h3>
+        <p style="color:#888;font-size:0.9rem">Run this command to register and get your key:</p>
+        <div class="key-box">curl -X POST https://triumphant-enthusiasm-production-625b.up.railway.app/v1/register<br>  -H "Content-Type: application/json"<br>  -d '{"agent_name":"my-agent","email":"me@example.com"}'</div>
+        <a class="btn" href="/v1/register">Register Now →</a>
+        <div class="hint">Already registered? Use your x-api-key header.</div>
+        <a class="btn" href="/v1/services" style="background:transparent;border:1px solid #2dd4bf;color:#2dd4bf;margin-left:8px">View Services</a>
         </div></body></html>
         """)
 
