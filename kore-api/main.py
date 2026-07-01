@@ -67,6 +67,7 @@ from routes.leaderboard import router as leaderboard_router
 from routes.lab import router as lab_router
 from routes.wellknown_mcp import router as mcp_card_router
 from routes.profile import router as profile_router
+from routes.mcp_v2 import router as mcp_v2_router
 from routes.memory import memory_router
 from middleware.audit import router as audit_router, AuditMiddleware
 from middleware.quotas import QuotaMiddleware
@@ -130,6 +131,14 @@ app.include_router(lab_router)
 app.include_router(mcp_card_router)
 app.include_router(profile_router)
 app.include_router(memory_router)
+app.include_router(mcp_v2_router)
+
+# ── Status page ──────────────────────────────────────────────────────
+_STATUS_PAGE_PATH = os.path.join(os.path.dirname(__file__), "static", "status.html")
+if os.path.isfile(_STATUS_PAGE_PATH):
+    @app.get("/status")
+    async def status_page():
+        return HTMLResponse(content=open(_STATUS_PAGE_PATH, encoding="utf-8").read())
 
 # ΩAudit middleware
 app.add_middleware(AuditMiddleware)

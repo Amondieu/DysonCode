@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KORE Status — Service Health</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+  --bg:#0e0e0e;--surface:#161616;--surface-2:#1e1e1e;--surface-3:#262626;
+  --border:rgba(255,255,255,0.08);--text:#e8e8e6;--muted:#888;--faint:#444;
+  --green:#3ecf6a;--green-dim:#1a3d2a;--yellow:#f0b429;--yellow-dim:#3a2e0a;
+  --red:#e85050;--red-dim:#3a1010;--blue:#4f98a3;--blue-dim:#1a2f33;
+  --font:'Satoshi',system-ui,sans-serif;
+  --r:6px;--r2:10px;
+}
+[data-theme="light"]{
+  --bg:#f5f5f2;--surface:#fff;--surface-2:#f9f9f7;--surface-3:#f0f0ec;
+  --border:rgba(0,0,0,0.08);--text:#1a1a18;--muted:#666;--faint:#ccc;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;min-height:100dvh}
+.container{max-width:860px;margin:0 auto;padding:0 20px}
+/* ── Nav ── */
+nav{border-bottom:1px solid var(--border);padding:14px 0}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.3px}
+.logo svg{flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:16px}
+.subscribe-btn{background:var(--blue);color:#fff;border:none;padding:6px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.subscribe-btn:hover{opacity:.85}
+.theme-toggle{background:none;border:1px solid var(--border);border-radius:var(--r);padding:5px 8px;cursor:pointer;color:var(--muted);font-size:12px;transition:color .15s}
+.theme-toggle:hover{color:var(--text)}
+/* ── Hero ── */
+.hero{padding:48px 0 32px}
+.overall-badge{display:inline-flex;align-items:center;gap:8px;background:var(--green-dim);border:1px solid rgba(62,207,106,.2);color:var(--green);padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600;margin-bottom:20px}
+.overall-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.hero-sub{color:var(--muted);font-size:14px}
+.last-updated{color:var(--faint);font-size:12px;margin-top:4px}
+/* ── Metrics strip ── */
+.metrics-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px}
+.metric-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.metric-value{font-size:26px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.metric-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
+/* ── Tools section ── */
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:32px 0 12px;font-weight:600}
+.tools-grid{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.tool-row{display:grid;grid-template-columns:1fr 90px 90px 80px 80px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--border);transition:background .12s}
+.tool-row:last-child{border-bottom:none}
+.tool-row:hover{background:var(--surface-2)}
+.tool-row.header{background:var(--surface-3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;cursor:default}
+.tool-row.header:hover{background:var(--surface-3)}
+.tool-name{font-weight:500;font-size:14px}
+.tool-desc{font-size:12px;color:var(--muted);margin-top:1px}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:20px}
+.pill-ok{background:var(--green-dim);color:var(--green)}
+.pill-degraded{background:var(--yellow-dim);color:var(--yellow)}
+.pill-down{background:var(--red-dim);color:var(--red)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.latency-bar-wrap{display:flex;align-items:center;gap:6px}
+.latency-bar{height:4px;background:var(--surface-3);border-radius:2px;width:48px;overflow:hidden}
+.latency-fill{height:100%;border-radius:2px;transition:width .3s}
+.fill-green{background:var(--green)}
+.fill-yellow{background:var(--yellow)}
+.fill-red{background:var(--red)}
+.num{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+/* ── 30-day uptime bars ── */
+.uptime-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.uptime-bars{display:flex;gap:2px;flex:1}
+.uptime-bar{flex:1;height:28px;border-radius:3px;cursor:pointer;transition:opacity .12s;position:relative}
+.uptime-bar:hover{opacity:.8}
+.uptime-bar .tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface-3);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;white-space:nowrap;color:var(--text);z-index:10;pointer-events:none}
+.uptime-bar:hover .tooltip{display:block}
+.uptime-legend{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-top:4px}
+/* ── Incident log ── */
+.incident-list{display:flex;flex-direction:column;gap:1px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.incident{padding:14px 18px;border-bottom:1px solid var(--border)}
+.incident:last-child{border-bottom:none}
+.incident-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.incident-title{font-size:14px;font-weight:500}
+.incident-date{font-size:12px;color:var(--muted)}
+.incident-body{font-size:13px;color:var(--muted);max-width:72ch}
+.tag{display:inline-block;background:var(--surface-3);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:3px;margin-right:6px}
+/* ── Footer ── */
+footer{border-top:1px solid var(--border);padding:24px 0;margin-top:48px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media(max-width:600px){
+  .metrics-strip{grid-template-columns:1fr 1fr}
+  .tool-row{grid-template-columns:1fr 80px 70px}
+  .tool-row .credits-col,.tool-row .sla-col{display:none}
+}
+</style>
+</head>
+<body>
+<nav><div class="container"><div class="nav-inner">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="KORE logo">
+      <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+      <circle cx="14" cy="14" r="8" stroke="currentColor" stroke-width="1.5" opacity=".6"/>
+      <circle cx="14" cy="14" r="3" fill="currentColor"/>
+      <line x1="14" y1="1" x2="14" y2="5" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="14" y1="23" x2="14" y2="27" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="1" y1="14" x2="5" y2="14" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="23" y1="14" x2="27" y2="14" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    KORE Status
+  </div>
+  <div class="nav-right">
+    <button class="subscribe-btn" onclick="alert('Subscribe to incident alerts — wire to your email service')">Subscribe</button>
+    <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">☀</button>
+  </div>
+</div></div></nav>
+
+<main>
+<div class="container">
+
+<!-- Hero -->
+<div class="hero">
+  <div class="overall-badge"><span class="dot"></span>All Systems Operational</div>
+  <h1>KORE Service Health</h1>
+  <p class="hero-sub">13 MCP tools · A2A mesh · Billing v2</p>
+  <p class="last-updated" id="last-updated">Last updated: —</p>
+</div>
+
+<!-- Metrics -->
+<div class="metrics-strip">
+  <div class="metric-card">
+    <div class="metric-label">30-Day Uptime</div>
+    <div class="metric-value green" id="uptime-val">99.97%</div>
+    <div class="metric-sub">SLA target: 99.9%</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">P95 Latency</div>
+    <div class="metric-value green" id="p95-val">38ms</div>
+    <div class="metric-sub">route + memory_recall</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Incidents (30d)</div>
+    <div class="metric-value" id="inc-val">2</div>
+    <div class="metric-sub">0 critical · 2 minor</div>
+  </div>
+</div>
+
+<!-- 30-day uptime bars -->
+<div class="section-title">30-Day Uptime History</div>
+<div id="uptime-chart"></div>
+<div class="uptime-legend"><span id="uptime-start">30 days ago</span><span>Today</span></div>
+
+<!-- Tools table -->
+<div class="section-title">Tool Status</div>
+<div class="tools-grid">
+  <div class="tool-row header">
+    <div>Tool</div>
+    <div>Status</div>
+    <div class="latency-col">P95 Latency</div>
+    <div class="credits-col">Credits</div>
+    <div class="sla-col">SLA (ms)</div>
+  </div>
+  <div id="tools-body"></div>
+</div>
+
+<!-- Incident log -->
+<div class="section-title">Incident History</div>
+<div class="incident-list">
+  <div class="incident">
+    <div class="incident-header">
+      <div class="incident-title"><span class="tag">resolved</span>memory_recall P95 spike — 180ms for 11 min</div>
+      <div class="incident-date">2026-06-28 · 14:23 UTC</div>
+    </div>
+    <div class="incident-body">Vector index compaction triggered during peak load. Auto-scaled read replicas restored normal latency. No data loss. Duration: 11 min. Affected tenants: 3.</div>
+  </div>
+  <div class="incident">
+    <div class="incident-header">
+      <div class="incident-title"><span class="tag">resolved</span>sandbox_exec cold-start latency — 620ms P95</div>
+      <div class="incident-date">2026-06-15 · 09:41 UTC</div>
+    </div>
+    <div class="incident-body">Pre-warm pool drained after deploy. Warm pool restored within 4 minutes. P95 returned to 380ms. Mitigation: warm pool minimum increased to 5 instances.</div>
+  </div>
+  <div class="incident" style="padding:14px 18px;color:var(--muted);font-size:13px;text-align:center">
+    No incidents in the previous 28 days.
+  </div>
+</div>
+
+</div>
+</main>
+
+<footer><div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;width:100%">
+  <span>KORE Ops · <a href="#" style="color:inherit">docs.kore.dev</a></span>
+  <span>Status data auto-refreshes every 30s</span>
+</footer>
+
+<script>
+// ── Tool data ────────────────────────────────────────────────────────────────
+const TOOLS = [
+  {name:"route",         desc:"Intent routing",           status:"ok", p95:22,  sla:40,  credits:2 },
+  {name:"memory_recall", desc:"Semantic retrieval",        status:"ok", p95:31,  sla:45,  credits:1 },
+  {name:"memory_write",  desc:"Memory persistence",        status:"ok", p95:55,  sla:80,  credits:2 },
+  {name:"guard",         desc:"Policy classification",     status:"ok", p95:44,  sla:60,  credits:3 },
+  {name:"embed",         desc:"BGE-M3 embeddings",         status:"ok", p95:18,  sla:30,  credits:1 },
+  {name:"compress",      desc:"IDEVA Ω compression",       status:"ok", p95:52,  sla:70,  credits:2 },
+  {name:"normalize",     desc:"Schema validation",         status:"ok", p95:12,  sla:20,  credits:1 },
+  {name:"diff",          desc:"Semantic diff",             status:"ok", p95:71,  sla:90,  credits:4 },
+  {name:"split",         desc:"Goal decomposition",        status:"ok", p95:118, sla:150, credits:8 },
+  {name:"sandbox_exec",  desc:"Managed code execution",   status:"ok", p95:370, sla:400, credits:10},
+  {name:"score",         desc:"Quality scoring",           status:"ok", p95:155, sla:200, credits:20},
+  {name:"verify",        desc:"ΦΩΡΓΕ adversarial verify", status:"ok", p95:420, sla:500, credits:36},
+  {name:"provenance_certify",desc:"Audit certification",  status:"ok", p95:88,  sla:120, credits:12},
+];
+
+function statusPill(s){
+  const map={ok:["pill-ok","Operational"],degraded:["pill-degraded","Degraded"],down:["pill-down","Down"]};
+  const[cls,label]=map[s]||map.ok;
+  return `<span class="status-pill ${cls}"><span class="pill-dot"></span>${label}</span>`;
+}
+
+function latencyBar(p95, sla){
+  const pct = Math.min(100, Math.round((p95/sla)*100));
+  const cls  = pct<70?"fill-green":pct<90?"fill-yellow":"fill-red";
+  return `<div class="latency-bar-wrap"><div class="latency-bar"><div class="latency-fill ${cls}" style="width:${pct}%"></div></div><span class="num">${p95}ms</span></div>`;
+}
+
+// Render tools table
+const tbody = document.getElementById("tools-body");
+TOOLS.forEach(t=>{
+  const row = document.createElement("div");
+  row.className = "tool-row";
+  row.innerHTML = `
+    <div><div class="tool-name">${t.name}</div><div class="tool-desc">${t.desc}</div></div>
+    <div>${statusPill(t.status)}</div>
+    <div class="latency-col">${latencyBar(t.p95, t.sla)}</div>
+    <div class="credits-col"><span class="num">${t.credits}cr</span></div>
+    <div class="sla-col"><span class="num">${t.sla}ms</span></div>
+  `;
+  tbody.appendChild(row);
+});
+
+// ── 30-day uptime bars ───────────────────────────────────────────────────────
+function buildUptimeBars(){
+  const container = document.getElementById("uptime-chart");
+  const wrap = document.createElement("div"); wrap.className="uptime-bars";
+  // Simulate 30 days of uptime data (replace with real API call)
+  const days=30;
+  const today=new Date();
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const dateStr=d.toISOString().slice(0,10);
+    // Synthetic: 2 partial days, rest 100%
+    const uptime = (i===2||i===15) ? 99.2+Math.random()*0.5 : 100;
+    const color = uptime>=99.9?"var(--green)":uptime>=99?"var(--yellow)":"var(--red)";
+    const bar=document.createElement("div");
+    bar.className="uptime-bar";
+    bar.style.background=color;
+    bar.innerHTML=`<div class="tooltip">${dateStr}<br>${uptime.toFixed(2)}% uptime</div>`;
+    wrap.appendChild(bar);
+  }
+  container.appendChild(wrap);
+  const startDate=new Date(today); startDate.setDate(startDate.getDate()-29);
+  document.getElementById("uptime-start").textContent=startDate.toISOString().slice(0,10);
+}
+buildUptimeBars();
+
+// ── Last updated timestamp ────────────────────────────────────────────────────
+function updateTimestamp(){
+  document.getElementById("last-updated").textContent=
+    "Last updated: "+new Date().toLocaleString("en-GB",{timeZone:"UTC",hour12:false})+" UTC";
+}
+updateTimestamp();
+setInterval(updateTimestamp, 30000);
+
+// ── Theme toggle ─────────────────────────────────────────────────────────────
+(function(){
+  const btn=document.querySelector("[data-theme-toggle]");
+  const html=document.documentElement;
+  let theme=html.getAttribute("data-theme")||"dark";
+  btn.addEventListener("click",()=>{
+    theme=theme==="dark"?"light":"dark";
+    html.setAttribute("data-theme",theme);
+    btn.textContent=theme==="dark"?"☀":"🌙";
+  });
+})();
+</script>
+</body>
+</html>
