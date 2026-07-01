@@ -204,7 +204,11 @@ if _STRIPE_KEY:
             return {"error": "invalid pack"}
         p = PACKS[pack]
 
-        # Look up customer_id from api key (via register.py in-memory registry)
+        # Use existing Stripe price ID if available
+        price_env = f"STRIPE_PRICE_{pack.upper()}"
+        price_id = os.environ.get(price_env, "")
+
+        # Look up customer_id from api key
         customer_id = "anonymous"
         if x_api_key:
             try:
@@ -215,16 +219,22 @@ if _STRIPE_KEY:
                 pass
 
         try:
+            line_item = {}
+            if price_id:
+                line_item = {"price": price_id, "quantity": 1}
+            else:
+                line_item = {"price_data": {"currency": "eur", "unit_amount": p["price"],
+                              "product_data": {"name": f"{pack.title()} Pack"}}, "quantity": 1}
+
             session = _stripe.checkout.Session.create(
                 mode="payment",
                 automatic_tax={"enabled": True},
-                line_items=[{"price_data": {"currency": "eur", "unit_amount": p["price"],
-                              "product_data": {"name": f"{pack.title()} Pack"}}, "quantity": 1}],
+                line_items=[line_item],
                 metadata={"pack": pack, "credits": str(p["credits"]), "customer_id": customer_id},
                 success_url="https://triumphant-enthusiasm-production-625b.up.railway.app/success",
                 cancel_url="https://triumphant-enthusiasm-production-625b.up.railway.app/pricing",
             )
-            return {"checkout_url": session.url, "customer_id": customer_id, "pack": pack}
+            return {"checkout_url": session.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline"}
         except Exception as e:
             return {"status": "error", "detail": str(e)}
 
