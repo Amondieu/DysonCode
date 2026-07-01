@@ -1,0 +1,36 @@
+{
+  "mission": "13 universal infrastructure services for AI agents. Pay-per-use billing via Stripe.",
+  "current_focus": "Memory service implementation",
+  "active_branch": "master",
+  "last_deploy": "bb0da0c",
+  "last_deploy_time": "2026-07-01T20:30:00Z",
+  "revenue_to_date_eur": 9,
+  "live_services": 13,
+  "live_url": "https://triumphant-enthusiasm-production-625b.up.railway.app",
+  "buy_url": "https://buy.stripe.com/eVq7sLfzygHr7zt8fu2Fa01",
+  "smithery_url": "https://smithery.ai/servers/amonmaly-33/kore-api",
+  "mcp_registry_pr": 1409,
+  "done": [
+    "Railway deployment live with 13 services",
+    "Stripe LIVE with 7 products",
+    "First revenue: €9",
+    "Smithery listing published",
+    "MCP Registry PR submitted",
+    "5 well-known discovery endpoints",
+    "x-api-key auth + registered keys",
+    "Hybrid billing model",
+    "Memory service wired (6 files)"
+  ],
+  "in_progress": [
+    "Memory service needs real DB dependency",
+    "Agent card deploy with 13 skills"
+  ],
+  "blocked": [
+    "Postgres DB instance needed for memory persistence"
+  ],
+  "next_tasks": [
+    "Wire get_db_session() to real async SQLAlchemy",
+    "Hook Verifier -> structured memory writes",
+    "Add release_cert artifacts on DONE"
+  ]
+}
