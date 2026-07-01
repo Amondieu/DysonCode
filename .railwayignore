@@ -11,3 +11,11 @@ logs/
 *.gguf
 *.bin
 *.pt
+awesome-mcp-servers/
+registry/
+release/
+asar-tmp/
+*.png
+*.jpg
+*.gguf
+release/
