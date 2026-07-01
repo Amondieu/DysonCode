@@ -67,6 +67,7 @@ from routes.leaderboard import router as leaderboard_router
 from routes.lab import router as lab_router
 from routes.wellknown_mcp import router as mcp_card_router
 from routes.profile import router as profile_router
+from routes.memory import memory_router
 from middleware.audit import router as audit_router, AuditMiddleware
 from middleware.quotas import QuotaMiddleware
 from middleware.security import SecurityMiddleware
@@ -128,6 +129,7 @@ app.include_router(leaderboard_router)
 app.include_router(lab_router)
 app.include_router(mcp_card_router)
 app.include_router(profile_router)
+app.include_router(memory_router)
 
 # ΩAudit middleware
 app.add_middleware(AuditMiddleware)
