@@ -226,15 +226,26 @@ if _STRIPE_KEY:
                 line_item = {"price_data": {"currency": "eur", "unit_amount": p["price"],
                               "product_data": {"name": f"{pack.title()} Pack"}}, "quantity": 1}
 
-            session = _stripe.checkout.Session.create(
-                mode="payment",
-                automatic_tax={"enabled": True},
-                line_items=[line_item],
-                metadata={"pack": pack, "credits": str(p["credits"]), "customer_id": customer_id},
-                success_url="https://triumphant-enthusiasm-production-625b.up.railway.app/success",
-                cancel_url="https://triumphant-enthusiasm-production-625b.up.railway.app/pricing",
-            )
-            return {"checkout_url": session.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline"}
+            # Use Payment Link (clean URLs without hash fragments)
+            try:
+                payment_link = _stripe.PaymentLink.create(
+                    line_items=[line_item],
+                    automatic_tax={"enabled": True},
+                    metadata={"pack": pack, "credits": str(p["credits"])},
+                    after_completion={"type": "redirect", "redirect": {"url": "https://triumphant-enthusiasm-production-625b.up.railway.app/success"}},
+                )
+                return {"checkout_url": payment_link.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline", "type": "payment_link"}
+            except Exception:
+                # Fallback to checkout session
+                session = _stripe.checkout.Session.create(
+                    mode="payment",
+                    automatic_tax={"enabled": True},
+                    line_items=[line_item],
+                    metadata={"pack": pack, "credits": str(p["credits"]), "customer_id": customer_id},
+                    success_url="https://triumphant-enthusiasm-production-625b.up.railway.app/success",
+                    cancel_url="https://triumphant-enthusiasm-production-625b.up.railway.app/pricing",
+                )
+                return {"checkout_url": session.url, "customer_id": customer_id, "pack": pack, "price_id": price_id or "inline", "type": "checkout_session"}
         except Exception as e:
             return {"status": "error", "detail": str(e)}
 
