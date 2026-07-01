@@ -6,7 +6,7 @@ from typing import Any, Iterable, Optional
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from memory_models import ConflictItem, MemoryEntry, RecallMatch, Scope
+from .memory_models import ConflictItem, MemoryEntry, RecallMatch, Scope
 
 
 class MemoryRepository:

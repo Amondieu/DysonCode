@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from memory_models import (
+from .memory_models import (
     ConflictRequest,
     ConflictResponse,
     RecallAsOfRequest,
@@ -15,8 +15,8 @@ from memory_models import (
     RememberRequest,
     RememberResponse,
 )
-from memory_repository import MemoryRepository
-from memory_service import MemoryService
+from .repository import MemoryRepository
+from .service import MemoryService
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 

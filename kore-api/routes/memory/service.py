@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from memory_models import (
+from .memory_models import (
     ConflictRequest,
     ConflictResponse,
     MemoryEntry,
@@ -12,7 +12,7 @@ from memory_models import (
     RememberRequest,
     RememberResponse,
 )
-from memory_repository import MemoryRepository
+from .repository import MemoryRepository
 
 
 class MemoryService:
