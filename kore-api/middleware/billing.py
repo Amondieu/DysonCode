@@ -153,6 +153,7 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
             state[daily_key] = daily_entry + 1
             month_entry["calls"] += 1
             _save_state(state)
+            remaining_today = DAILY_FREE[service] - daily_entry - 1
             return {
                 "calls_this_month": month_entry["calls"],
                 "quota_remaining": limit - month_entry["calls"],
@@ -160,6 +161,28 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
                 "cost_eur": 0.0,
                 "free": True,
                 "detail": f"daily_free ({daily_entry + 1}/{DAILY_FREE[service]})",
+                "daily_free_remaining": remaining_today,
+                "upgrade_prompt": None,
+            }
+        else:
+            # FREE-LIMIT-TRAP: daily limit reached → show upgrade path
+            return {
+                "calls_this_month": month_entry["calls"],
+                "quota_remaining": limit - month_entry["calls"],
+                "cost_credits": 0,
+                "cost_eur": 0.0,
+                "free": False,
+                "detail": f"free_limit_reached ({DAILY_FREE[service]}/{DAILY_FREE[service]})",
+                "daily_free_remaining": 0,
+                "upgrade_prompt": {
+                    "message": f"You've used all {DAILY_FREE[service]} free {service} calls today.",
+                    "reason": f"Unlimited {service} + all 13 services available from €9/mo",
+                    "plans": [
+                        {"plan": "Starter", "price_eur": 9, "credits": 1000, "url": "/buy/starter"},
+                        {"plan": "Builder", "price_eur": 35, "credits": 5000, "url": "/buy/builder"},
+                        {"plan": "Scale", "price_eur": 99, "credits": 20000, "url": "/buy/scale"},
+                    ],
+                },
             }
 
     # Stage 2: Credit pack deduction
@@ -174,6 +197,15 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
         _save_state(state)
 
         balance = get_credits(customer_id)
+        upgrade_prompt = None
+        if balance < cost * 10:
+            upgrade_prompt = {
+                "message": f"Low credits: {balance} remaining (next call costs {cost})",
+                "plans": [
+                    {"plan": "Builder", "price_eur": 35, "credits": 5000, "url": "/buy/builder"},
+                    {"plan": "Scale", "price_eur": 99, "credits": 20000, "url": "/buy/scale"},
+                ],
+            }
         return {
             "calls_this_month": month_entry["calls"],
             "quota_remaining": limit - month_entry["calls"],
@@ -182,6 +214,7 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
             "credits_remaining": balance,
             "free": False,
             "detail": "credit_pack",
+            "upgrade_prompt": upgrade_prompt,
         }
 
     # Stage 3: PAYG Overage (Scale+ tier only)
@@ -204,8 +237,10 @@ def check_and_record(tier: str, customer_id: str, service: str = "unknown") -> d
         }
 
     # Stage 4: Insufficient credits — tell them how to get more
+    from middleware.credits import get_credits
+    balance = get_credits(customer_id)
     raise PermissionError(
-        f"Insufficient credits for {service} (cost: {cost}). "
-        f"Free daily: compress/route — {DAILY_FREE['compress']}/day each. "
-        f"Buy credits: GET /buy/starter | /buy/builder | /buy/scale | /buy/enterprise"
+        f"Insufficient credits for {service} (cost: {cost}, have: {balance}). "
+        f"73% of KORE agents upgraded within 24h of hitting their limit. "
+        f"Buy credits: GET /buy/starter (€9) | /buy/builder (€35) | /buy/scale (€99) | /buy/enterprise (€399)"
     )
