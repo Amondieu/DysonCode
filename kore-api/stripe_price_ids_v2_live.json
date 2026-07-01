@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "key": "dev",
+    "product_id": "prod_Uo8SgJ5YcMDrAX",
+    "price_id": "price_1ToWBbGpyUjJ8qvev7gCjPND",
+    "name": "KORE Dev",
+    "amount_eur": 9.0
+  },
+  "pro": {
+    "key": "pro",
+    "product_id": "prod_Uo8SfBkULHx9I4",
+    "price_id": "price_1ToWBbGpyUjJ8qve4yfdBQeI",
+    "name": "KORE Pro",
+    "amount_eur": 35.0
+  },
+  "memory_bundle": {
+    "key": "memory_bundle",
+    "product_id": "prod_Uo8Sj7KOvi1FtC",
+    "price_id": "price_1ToWBcGpyUjJ8qve6UXm4rI2",
+    "name": "KORE Memory Bundle",
+    "amount_eur": 9.0
+  }
+}
