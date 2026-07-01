@@ -1,9 +1,9 @@
 {
   "mission": "13 universal infrastructure services for AI agents. Pay-per-use billing via Stripe.",
-  "current_focus": "Memory service implementation",
+  "current_focus": "Memory service implementation + handoff protocol enforcement",
   "active_branch": "master",
-  "last_deploy": "bb0da0c",
-  "last_deploy_time": "2026-07-01T20:30:00Z",
+  "last_deploy": "d429bb9",
+  "last_deploy_time": "2026-07-01T20:46:00Z",
   "revenue_to_date_eur": 9,
   "live_services": 13,
   "live_url": "https://triumphant-enthusiasm-production-625b.up.railway.app",
@@ -19,11 +19,14 @@
     "5 well-known discovery endpoints",
     "x-api-key auth + registered keys",
     "Hybrid billing model",
-    "Memory service wired (6 files)"
+    "Memory service wired (6 files)",
+    "Handoff protocol: AGENTS.md + handoff.py CLI + Makefile wrappers",
+    ".kore-memory/ fully populated: decisions.jsonl, blockers.jsonl, HANDOFF_PROTOCOL.md"
   ],
   "in_progress": [
     "Memory service needs real DB dependency",
-    "Agent card deploy with 13 skills"
+    "Agent card deploy with 13 skills",
+    "Handoff CLI: handoff.py + Makefile + AGENTS.md protocol enforcement"
   ],
   "blocked": [
     "Postgres DB instance needed for memory persistence"
@@ -31,6 +34,7 @@
   "next_tasks": [
     "Wire get_db_session() to real async SQLAlchemy",
     "Hook Verifier -> structured memory writes",
-    "Add release_cert artifacts on DONE"
+    "Add release_cert artifacts on DONE",
+    "Create awesome-mcp-servers PR (1 click)"
   ]
 }

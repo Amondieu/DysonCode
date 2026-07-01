@@ -16,11 +16,14 @@ Memory service implementation — typed, governed, auditable cross-agent memory.
 - ✅ Auth: x-api-key + registered keys
 - ✅ Billing: Hybrid model (free + packs + PAYG + Free-Limit-Trap)
 - ✅ Memory service wired (6 files in kore-api/routes/memory/)
+- ✅ Handoff protocol: `AGENTS.md` + `handoff.py` CLI + `Makefile` wrappers
+- ✅ `.kore-memory/` fully populated: `decisions.jsonl`, `blockers.jsonl`, `HANDOFF_PROTOCOL.md`
 
 ## In Progress
 - 🔄 Memory service needs real DB dependency wired
 - 🔄 `/.well-known/agent.json` needs deploy with 13 skills
 - 🔄 Railway deploy building (auth fix + memory + discovery)
+- 🔄 Handoff CLI: `handoff.py` + `Makefile` + `AGENTS.md` protocol enforcement
 
 ## Blocked
 - Need Postgres DB instance (for memory persistence + release certs)
@@ -36,6 +39,7 @@ Memory service implementation — typed, governed, auditable cross-agent memory.
 - Memanto as optional external backend
 - Hybrid billing: free + packs + PAYG
 - 10 typed memory types (fact, decision, instruction, goal, artifact, error, context, event, risk, pattern)
+- Handoff protocol: two-layer (repo truth + API truth), enforced via AGENTS.md + Makefile
 
 ## Active Branch
 `master`
