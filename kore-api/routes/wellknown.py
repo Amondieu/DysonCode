@@ -96,6 +96,18 @@ async def agent_discovery():
     return AGENT_CARD
 
 
+@router.get("/.well-known/skills.md")
+async def skills_md():
+    """Human-readable skills surface."""
+    from pathlib import Path
+    skills_path = Path(__file__).parent.parent / ".well-known" / "skills.md"
+    if skills_path.exists():
+        content = skills_path.read_text(encoding="utf-8")
+        from fastapi.responses import Response
+        return Response(content=content, media_type="text/markdown")
+    return {"error": "skills.md not found"}
+
+
 @router.get("/.well-known/mcp.json")
 async def mcp_discovery():
     """MCP ecosystem manifest — auto-discovered by MCP-aware agents."""
