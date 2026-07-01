@@ -1,3 +1,5 @@
+import os
+
 """
 /.well-known/agent.json — A2A RFC-compliant agent discovery endpoint.
 
@@ -86,12 +88,26 @@ AGENT_CARD = {
 }
 
 
-BASE_URL = "https://triumphant-enthusiasm-production-625b.up.railway.app"
+BASE_URL = os.environ.get("BASE_URL", "https://triumphant-enthusiasm-production-625b.up.railway.app")
 
 
 @router.get("/.well-known/agent.json")
 async def agent_discovery():
     return AGENT_CARD
+
+
+@router.get("/.well-known/mcp.json")
+async def mcp_discovery():
+    """MCP ecosystem manifest — auto-discovered by MCP-aware agents."""
+    return {
+        "name": "KORE API",
+        "description": "13 cognitive infrastructure services for AI agents. Hallucination firewall, context compression, cross-agent memory, token routing, quality scoring, task decomposition, semantic diff, provenance, embeddings, sandbox, verification, audit.",
+        "version": "1.0.0",
+        "url": BASE_URL,
+        "authentication": {"type": "api-key", "header": "x-api-key"},
+        "pricing": {"free_tier": "100 credits + 3 compress/route per day", "starter": "€9/1000 credits", "builder": "€35/5000", "scale": "€99/20000"},
+        "tools": [{"name": s["id"], "description": s.get("tagline", s["name"])} for s in SERVICES],
+    }
 
 
 @router.get("/.well-known/ai-plugin.json")
