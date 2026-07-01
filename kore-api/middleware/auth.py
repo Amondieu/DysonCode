@@ -65,4 +65,17 @@ async def require_auth(
     if token == MASTER_KEY:
         return AuthContext(key=token, tier="enterprise", customer_id="admin")
 
-    raise HTTPException(401, "Invalid API key. Get one at https://api.kore.ai/pricing")
+    # Check against registered API keys (from register.py in-memory registry)
+    try:
+        from routes.register import _agents
+        if token in _agents:
+            agent = _agents[token]
+            return AuthContext(
+                key=token,
+                tier=agent.get("tier", "free"),
+                customer_id=agent.get("customer_id", "anonymous"),
+            )
+    except Exception:
+        pass
+
+    raise HTTPException(401, "Invalid API key. Get one at POST /v1/register")
