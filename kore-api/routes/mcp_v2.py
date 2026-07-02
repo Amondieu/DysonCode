@@ -390,13 +390,69 @@ async def call_route(body: dict, response: Response):
 # ── Memory recall endpoint (latency-optimized with cache) ─────────────────────
 
 
-async def _recall_logic(query: str, top_k: int) -> dict:
+import os as _os
+
+_PG_URL = _os.environ.get("DATABASE_URL", "")
+_USE_PG = _PG_URL.startswith("postgres") or _PG_URL.startswith("postgresql")
+
+
+async def _recall_logic(query: str, top_k: int, agent_id: str = "default") -> dict:
     """
-    Vector similarity search against memory store.
-    Replace with your actual vector DB call (pgvector, Qdrant, Weaviate).
+    Vector similarity search against Postgres+pgvector memory store.
+    Falls back to empty results if no Postgres is configured.
     Target latency: <30ms for cached embeddings, <45ms total.
     """
-    return {"results": [], "query": query, "top_k": top_k}
+    if not _USE_PG:
+        return {"results": [], "query": query, "top_k": top_k, "note": "Postgres not configured. Set DATABASE_URL to a postgres:// connection string with pgvector extension."}
+
+    try:
+        import asyncpg
+        conn = await asyncpg.connect(_PG_URL)
+        try:
+            # Compute a simple embedding (stub — replace with real embedding model)
+            # For production, use OpenAI / Cohere / BGE-M3 embedding API
+            import hashlib
+            query_hash = hashlib.sha256(query.encode()).hexdigest()[:16]
+            fake_embedding = [float(int(query_hash[i:i+2], 16)) / 255.0 for i in range(0, 32, 2)]
+            fake_embedding = fake_embedding * 48  # pad to 1536 dims
+            fake_embedding = fake_embedding[:1536]
+
+            rows = await conn.fetch(
+                """
+                SELECT id, text, agent_id, session_id, labels, importance,
+                       source_type, source_id, trace_id, created_at,
+                       (embedding <-> $1::vector) AS distance
+                FROM memories
+                WHERE ($2::text IS NULL OR agent_id = $2)
+                ORDER BY distance ASC, importance DESC, created_at DESC
+                LIMIT $3
+                """,
+                fake_embedding,
+                agent_id if agent_id != "default" else None,
+                top_k
+            )
+
+            items = []
+            for row in rows:
+                items.append({
+                    "id": row["id"],
+                    "score": round(1.0 - float(row["distance"]), 4),
+                    "text": row["text"],
+                    "agent_id": row["agent_id"],
+                    "labels": row["labels"] or [],
+                    "source_type": row["source_type"],
+                    "source_id": row["source_id"],
+                    "trace_id": row["trace_id"],
+                    "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                })
+
+            return {"results": items, "query": query, "top_k": top_k}
+        finally:
+            await conn.close()
+    except ImportError:
+        return {"results": [], "query": query, "top_k": top_k, "note": "asyncpg not installed. Run: pip install asyncpg"}
+    except Exception as e:
+        return {"results": [], "query": query, "top_k": top_k, "error": str(e)}
 
 
 @router.post("/tools/call/memory_recall")
