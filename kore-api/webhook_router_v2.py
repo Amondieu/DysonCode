@@ -27,7 +27,8 @@ from typing import Optional, Protocol
 
 logger = logging.getLogger(__name__)
 
-STRIPE_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET_V2", "")
+# Try both naming conventions for the webhook secret
+STRIPE_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET_V2", "") or os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 
 # ── WalletStore Protocol ──────────────────────────────────────────────────────
