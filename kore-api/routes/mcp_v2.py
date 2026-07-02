@@ -30,7 +30,7 @@ router = APIRouter(prefix="/v2/mcp", tags=["mcp-v2"])
 
 TOOL_META: dict[str, dict] = {
     "route": {
-        "description": "Deterministic intent → agent routing. 2cr. Fastest KORE op.",
+        "description": "Route an agent intent to the most capable downstream agent or tool. Use this at the start of any agent workflow to ensure the request reaches the right handler. Returns a target agent name and confidence score. 2cr per call.",
         "latency_sla_ms": 40,
         "suggested_next": ["memory_recall", "guard"],
         "input_schema": {
@@ -44,7 +44,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "memory_recall": {
-        "description": "Long-term semantic memory retrieval. 1cr. Cheapest retrieval in KORE.",
+        "description": "Retrieve semantically relevant memories from the agent's long-term store. Use this when an agent needs context from past sessions, decisions, or patterns. Returns ranked matches with relevance scores. 1cr per call.",
         "latency_sla_ms": 45,
         "suggested_next": ["compress", "route"],
         "input_schema": {
@@ -59,7 +59,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "memory_write": {
-        "description": "Persist agent memory. 2cr. Feeds the memory lock-in flywheel.",
+        "description": "Write a new memory entry into the agent's persistent store. Use this after any significant agent action, decision, or observation to build long-term context. Returns a storage confirmation with entry IDs. 2cr per call.",
         "latency_sla_ms": 80,
         "suggested_next": ["memory_recall", "compress"],
         "input_schema": {
@@ -74,7 +74,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "guard": {
-        "description": "Policy + risk classification before execution. 3cr.",
+        "description": "Classify an action or payload against configurable policy rules and risk thresholds. Use this before executing any privileged or high-cost operation to prevent policy violations. Returns allowed/denied verdict with risk level. 3cr per call.",
         "latency_sla_ms": 60,
         "suggested_next": ["route", "sandbox_exec"],
         "input_schema": {
@@ -88,7 +88,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "embed": {
-        "description": "BGE-M3 semantic embedding. 1cr. Self-hosted — zero pass-through cost.",
+        "description": "Generate a dense vector embedding for any text using the self-hosted BGE-M3 model. Use this when you need semantic representations for search, clustering, or similarity comparison. Returns the embedding vector and its dimension count. 1cr per call.",
         "latency_sla_ms": 30,
         "suggested_next": ["memory_write", "diff"],
         "input_schema": {
@@ -115,7 +115,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "diff": {
-        "description": "Semantic diff between two texts or memory states. 4cr.",
+        "description": "Compute a semantic diff between two texts, memory entries, or agent outputs. Use this to identify meaningful changes between versions, compare agent outputs, or track memory evolution. Returns a delta object and similarity score. 4cr per call.",
         "latency_sla_ms": 90,
         "suggested_next": ["verify", "score"],
         "input_schema": {
@@ -129,7 +129,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "split": {
-        "description": "Goal decomposition into DAG subtasks. 8cr.",
+        "description": "Decompose a complex goal into a directed acyclic graph of subtasks with dependencies. Use this when a task is too large for a single agent call and needs structured planning. Returns a task list and a dependency DAG. 8cr per call.",
         "latency_sla_ms": 150,
         "suggested_next": ["route", "sandbox_exec"],
         "input_schema": {
@@ -157,7 +157,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "sandbox_exec": {
-        "description": "Managed secure code execution with A2A context + audit log. 10cr.",
+        "description": "Execute code securely in a managed sandbox with full audit logging. Use this when an agent needs to run untrusted code, test scripts, or perform computations in an isolated environment. Returns stdout, stderr, exit code, and execution time. 10cr per call.",
         "latency_sla_ms": 400,
         "suggested_next": ["verify", "score"],
         "input_schema": {
@@ -172,7 +172,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "score": {
-        "description": "Structured quality scoring with IDEVA schema. 20cr. Local inference.",
+        "description": "Score content quality against configurable criteria using the IDEVA scoring schema. Use this when you need objective, repeatable quality metrics for agent outputs or workflow results. Returns per-criterion scores, an overall score, and a pass/fail verdict. 20cr per call.",
         "latency_sla_ms": 200,
         "suggested_next": ["verify", "memory_write"],
         "input_schema": {
@@ -186,7 +186,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "verify": {
-        "description": "ΦΩΡΓΕ adversarial verification with structured pass/fail verdict. 36cr.",
+        "description": "Verify a claim or assertion through adversarial falsification testing. Use this for high-stakes assertions that need rigorous challenge before trust. Returns a pass/fail/uncertain verdict with confidence score and list of falsifiers found. 36cr per call.",
         "latency_sla_ms": 500,
         "suggested_next": ["provenance_certify", "memory_write"],
         "input_schema": {
@@ -200,7 +200,7 @@ TOOL_META: dict[str, dict] = {
         },
     },
     "provenance_certify": {
-        "description": "Immutable provenance certificate for compliance/audit chains. 12cr.",
+        "description": "Create an immutable provenance certificate for an artifact or content hash. Use this when audit trails, compliance chains, or verifiable records are required. Returns a signed certificate ID with issuance timestamp and chain depth. 12cr per call.",
         "latency_sla_ms": 120,
         "suggested_next": ["memory_write"],
         "input_schema": {
@@ -258,6 +258,17 @@ async def tools_list():
             "name": name,
             "description": meta["description"],
             "inputSchema":  meta["input_schema"],
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "suggested_next_tool": {"type": "string", "description": "Recommended next KORE tool to call"},
+                    "credits_used": {"type": "integer", "description": "Credits consumed by this call"},
+                    "credits_remaining": {"type": "integer", "description": "Credits remaining in wallet"},
+                    "payg_eur": {"type": "number", "description": "PAYG cost in EUR if applicable"},
+                    "latency_ms": {"type": "integer", "description": "Actual response time in milliseconds"},
+                    "dry_run": {"type": "boolean", "description": "Whether this was a dry run"},
+                }
+            },
             "x-credits-per-call":  CREDIT_WEIGHTS.get(name, 0),
             "x-cost-eur-per-call": eur_cost(name),
             "x-latency-sla-ms":    meta["latency_sla_ms"],
