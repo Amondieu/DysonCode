@@ -8,13 +8,13 @@ from routes.services import SERVICES
 
 router = APIRouter()
 
-BASE_URL = os.environ.get("BASE_URL", "https://triumphant-enthusiasm-production-625b.up.railway.app")
+BASE_URL = os.environ.get("BASE_URL", "https://triumphant-enthusiasm-production-02e1.up.railway.app")
 
 MCP_SERVER_CARD = {
     "name": "KORE Universal Agent Services",
     "description": "13 universal infrastructure services for AI agents: hallucination firewall, context compression, cross-agent memory, token routing, quality scoring, task decomposition, semantic diff, provenance certification, embeddings, sandbox, audit log.",
     "url": BASE_URL,
-    "version": "1.0.0",
+    "version": "2.0.0",
     "categories": ["infrastructure", "ai-agents", "compliance", "security"],
     "tools": [
         {
